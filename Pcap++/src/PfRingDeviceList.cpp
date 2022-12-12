@@ -63,7 +63,7 @@ PfRingDeviceList::~PfRingDeviceList()
 	}
 }
 
-PfRingDevice* PfRingDeviceList::getPfRingDeviceByName(const std::string devName) const
+PfRingDevice* PfRingDeviceList::getPfRingDeviceByName(const std::string &devName) const
 {
 	PCPP_LOG_DEBUG("Searching all live devices...");
 	for(std::vector<PfRingDevice*>::const_iterator devIter = m_PfRingDeviceList.begin(); devIter != m_PfRingDeviceList.end(); devIter++)
@@ -87,7 +87,7 @@ void PfRingDeviceList::calcPfRingVersion(void* ring)
 	}
 
 	char versionAsString[25];
-	sprintf(versionAsString, "PF_RING v.%d.%d.%d\n",
+	sprintf(versionAsString, "PF_RING v.%u.%u.%u\n",
 	  (version & 0xFFFF0000) >> 16,
 	  (version & 0x0000FF00) >> 8,
 	  version & 0x000000FF);
