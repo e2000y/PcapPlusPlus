@@ -103,7 +103,9 @@ namespace pcpp
 		PACKETPP_IPPROTO_DSTOPTS = 60,
 		/** VRRP protocol */
 		PACKETPP_IPPROTO_VRRP = 112,
-		/** Raw IP packets */
+		/** SCTP                                */
+ 		PACKETPP_IPPROTO_SCTP = 132,
+		/** Raw IP packets			*/
 		PACKETPP_IPPROTO_RAW = 255,
 		/** Maximum value */
 		PACKETPP_IPPROTO_MAX

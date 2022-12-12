@@ -347,6 +347,11 @@ namespace pcpp
 	 */
 	const ProtocolType LDAP = 55;
 
+    /*
+	 * SCTP protocol
+	 */
+	const ProtocolType SCTP = 199;
+
 	/**
 	 * An enum representing OSI model layers
 	 */

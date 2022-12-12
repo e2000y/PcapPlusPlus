@@ -113,6 +113,9 @@ namespace pcpp
 		PcapLogModuleKniDevice,          ///< KniDevice module (Pcap++)
 		PcapLogModuleXdpDevice,          ///< XdpDevice module (Pcap++)
 		NetworkUtils,                    ///< NetworkUtils module (Pcap++)
+        PacketLogModuleSctpLayer,
+        JavaCPPLogModulePCAPFILEIPv4,    /// JavaCPP - PCAP File IPV4
+        JavaCPPLogModuleDPDKIPv4,        /// JavaCPP - DPDK IPV4
 		NumOfLogModules
 	};
 
