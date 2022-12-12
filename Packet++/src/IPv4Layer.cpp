@@ -386,6 +386,9 @@ namespace pcpp
 			case VRRPv3:
 				ipHdr->protocol = PACKETPP_IPPROTO_VRRP;
 				break;
+			case SCTP:
+				ipHdr->protocol = PACKETPP_IPPROTO_SCTP;
+				break;
 			default:
 				break;
 			}

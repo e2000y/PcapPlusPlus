@@ -89,7 +89,11 @@ void SctpInitChunk::parseChunkData()
                 uint16_t *types = reinterpret_cast<uint16_t *>(param->getValue());
                 size_t num = param->getDataSize() / sizeof(uint16_t);
                 
+<<<<<<< HEAD
                 for (size_t i = 0; i < num; i++) {
+=======
+                for (int i = 0; i < num; i++) {
+>>>>>>> 359050e5 (add SCTP handling;)
                     uint16_t t = be16toh(*(types + i));
                     
                     m_addrTypes.push_back(std::make_shared<uint16_t>(t));

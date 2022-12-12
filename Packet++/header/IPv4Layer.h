@@ -103,7 +103,7 @@ namespace pcpp
 		PACKETPP_IPPROTO_DSTOPTS = 60,
 		/** VRRP protocol */
 		PACKETPP_IPPROTO_VRRP = 112,
-		/** SCTP                                */
+		/** SCTP */
  		PACKETPP_IPPROTO_SCTP = 132,
 		/** Raw IP packets			*/
 		PACKETPP_IPPROTO_RAW = 255,
