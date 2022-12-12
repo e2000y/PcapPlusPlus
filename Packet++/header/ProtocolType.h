@@ -293,6 +293,11 @@ namespace pcpp
 	const ProtocolType WakeOnLan = 0x200000000000;
 
 	/**
+	 * SCTP
+	 */
+	const ProtocolType SCTP = 0x8000000000000000;
+
+	/**
 	 * An enum representing OSI model layers
 	 */
 	enum OsiModelLayer

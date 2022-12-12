@@ -5,6 +5,7 @@
 #include "PayloadLayer.h"
 #include "UdpLayer.h"
 #include "TcpLayer.h"
+#include "SctpLayer.h"
 #include "GreLayer.h"
 #include "IPSecLayer.h"
 #include "IcmpV6Layer.h"
@@ -265,6 +266,11 @@ void IPv6Layer::parseNextLayer()
 		m_NextLayer = IcmpV6Layer::parseIcmpV6Layer(payload, payloadLen, this, m_Packet);
 		break;
 	}
+	case PACKETPP_IPPROTO_SCTP:
+ 		m_NextLayer = SctpLayer::isDataValid(payload, payloadLen)
+ 			? static_cast<Layer*>(new SctpLayer(payload, payloadLen, this, m_Packet))
+ 			: static_cast<Layer*>(new PayloadLayer(payload, payloadLen, this, m_Packet));
+		break;
 	default:
 		m_NextLayer = new PayloadLayer(payload, payloadLen, this, m_Packet);
 		return;
