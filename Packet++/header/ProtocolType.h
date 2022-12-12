@@ -342,6 +342,11 @@ namespace pcpp
 	 */
 	const ProtocolType SMTP = 54;
 
+	/*
+	 * SCTP protocol
+	 */
+	const ProtocolType SCTP = 199;
+
 	/**
 	 * An enum representing OSI model layers
 	 */
