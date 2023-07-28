@@ -600,4 +600,3 @@ bool IPv4Layer::removeAllOptions()
 }
 
 } // namespace pcpp
->>>>>>> master
