@@ -8,6 +8,9 @@ PTF_TEST_CASE(TestMacAddress);
 PTF_TEST_CASE(TestLRUList);
 PTF_TEST_CASE(TestGeneralUtils);
 PTF_TEST_CASE(TestGetMacAddress);
+PTF_TEST_CASE(TestIPv4Network);
+PTF_TEST_CASE(TestIPv6Network);
+PTF_TEST_CASE(TestIPNetwork);
 
 // Implemented in LoggerTests.cpp
 PTF_TEST_CASE(TestLogger);
@@ -76,6 +79,7 @@ PTF_TEST_CASE(TestIPFragPartialData);
 PTF_TEST_CASE(TestIPFragMultipleFrags);
 PTF_TEST_CASE(TestIPFragMapOverflow);
 PTF_TEST_CASE(TestIPFragRemove);
+PTF_TEST_CASE(TestIPFragWithPadding);
 
 // Implemented in PfRingTests.cpp
 PTF_TEST_CASE(TestPfRingDevice);
@@ -100,3 +104,6 @@ PTF_TEST_CASE(TestKniDeviceSendReceive);
 
 // Implemented in RawSocketTests.cpp
 PTF_TEST_CASE(TestRawSockets);
+
+// Implemented in SystemUtilsTests.cpp
+PTF_TEST_CASE(TestSystemCoreUtils);

@@ -36,7 +36,7 @@ static int incSleep(const pcpp::RawPacketVector& capturedPackets, size_t expecte
 
 PTF_TEST_CASE(TestPcapFiltersLive)
 {
-	pcpp::PcapLiveDevice* liveDev = NULL;
+	pcpp::PcapLiveDevice* liveDev = nullptr;
 	pcpp::IPv4Address ipToSearch(PcapTestGlobalArgs.ipToSendReceivePackets.c_str());
 	liveDev = pcpp::PcapLiveDeviceList::getInstance().getPcapLiveDeviceByIp(ipToSearch);
 	PTF_ASSERT_NOT_NULL(liveDev);
@@ -155,7 +155,7 @@ PTF_TEST_CASE(TestPcapFiltersLive)
 			bool srcPortMatch = tcpLayer->getSrcPort() == 80;
 			bool srcIpMatch = false;
 			pcpp::IPv4Layer* ip4Layer = packet.getLayerOfType<pcpp::IPv4Layer>();
-			if (ip4Layer != NULL)
+			if (ip4Layer != nullptr)
 			{
 				srcIpMatch = ip4Layer->getSrcIPAddress() == ipToSearch;
 			}
@@ -465,7 +465,7 @@ PTF_TEST_CASE(TestPcapFiltersOffline)
 		pcpp::Packet packet(*iter);
 		PTF_ASSERT_TRUE(packet.isPacketOfType(pcpp::IPv4));
 		pcpp::IPv4Layer* ipLayer = packet.getLayerOfType<pcpp::IPv4Layer>();
-		PTF_ASSERT_TRUE(ipLayer->getSrcIPv4Address().matchSubnet(pcpp::IPv4Address(std::string("212.199.202.9")), std::string("255.255.255.0")));
+		PTF_ASSERT_TRUE(ipLayer->getSrcIPv4Address().matchNetwork(std::string("212.199.202.9/255.255.255.0")));
 	}
 
 	rawPacketVec.clear();
@@ -486,7 +486,7 @@ PTF_TEST_CASE(TestPcapFiltersOffline)
 		pcpp::Packet packet(*iter);
 		PTF_ASSERT_TRUE(packet.isPacketOfType(pcpp::IPv4));
 		pcpp::IPv4Layer* ipLayer = packet.getLayerOfType<pcpp::IPv4Layer>();
-		PTF_ASSERT_TRUE(ipLayer->getSrcIPv4Address().matchSubnet(pcpp::IPv4Address(std::string("212.199.202.9")), std::string("255.255.255.0")));
+		PTF_ASSERT_TRUE(ipLayer->getSrcIPv4Address().matchNetwork(std::string("212.199.202.9/255.255.255.0")));
 	}
 	rawPacketVec.clear();
 

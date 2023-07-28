@@ -7,7 +7,24 @@
 #include "ArpLayer.h"
 #include "PayloadLayer.h"
 #include "Packet.h"
+#include "OUILookup.h"
 #include "SystemUtils.h"
+
+PTF_TEST_CASE(OUILookup)
+{
+	pcpp::OUILookup lookupEngineJson;
+	PTF_ASSERT_GREATER_THAN(lookupEngineJson.initOUIDatabaseFromJson("../../3rdParty/OUIDataset/PCPP_OUIDataset.json"), 0);
+
+	PTF_ASSERT_EQUAL(lookupEngineJson.getVendorName("aa:aa:aa:aa:aa:aa"), "Unknown");
+	// CIDR 36
+	PTF_ASSERT_EQUAL(lookupEngineJson.getVendorName("70:B3:D5:2A:B0:00"), "NASA Johnson Space Center");
+	PTF_ASSERT_EQUAL(lookupEngineJson.getVendorName("70:B3:D5:2A:BF:FF"), "NASA Johnson Space Center");
+	// CIDR 28
+	PTF_ASSERT_EQUAL(lookupEngineJson.getVendorName("f4:0e:11:f0:00:00"), "Private");
+	PTF_ASSERT_EQUAL(lookupEngineJson.getVendorName("f4:0e:11:ff:ff:ff"), "Private");
+	// Short
+	PTF_ASSERT_EQUAL(lookupEngineJson.getVendorName("00:08:55:01:01:01"), "NASA-Goddard Space Flight Center");
+}
 
 PTF_TEST_CASE(EthPacketCreation)
 {
@@ -70,7 +87,7 @@ PTF_TEST_CASE(EthPacketPointerCreation)
 PTF_TEST_CASE(EthAndArpPacketParsing)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/ArpResponsePacket.dat");
 
@@ -92,6 +109,8 @@ PTF_TEST_CASE(EthAndArpPacketParsing)
 	PTF_ASSERT_EQUAL(arpLayer->getArpHeader()->hardwareSize, 6);
 	PTF_ASSERT_EQUAL(arpLayer->getArpHeader()->protocolSize, 4);
 	PTF_ASSERT_EQUAL(arpLayer->getArpHeader()->opcode, htobe16(pcpp::ARP_REPLY));
+	PTF_ASSERT_EQUAL(arpLayer->isReply(), true);
+	PTF_ASSERT_EQUAL(arpLayer->isRequest(), false);
 	PTF_ASSERT_EQUAL(arpLayer->getSenderIpAddr(), pcpp::IPv4Address("10.0.0.138"));
 	PTF_ASSERT_EQUAL(arpLayer->getTargetMacAddress(), pcpp::MacAddress("6c:f0:49:b2:de:6e"));
 } // EthAndArpPacketParsing
@@ -130,7 +149,7 @@ PTF_TEST_CASE(ArpPacketCreation)
 PTF_TEST_CASE(EthDot3LayerParsingTest)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/EthDot3.dat");
 	pcpp::Packet ethDot3Packet(&rawPacket1);
@@ -151,7 +170,7 @@ PTF_TEST_CASE(EthDot3LayerParsingTest)
 PTF_TEST_CASE(EthDot3LayerCreateEditTest)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 
 	READ_FILE_INTO_BUFFER(1, "PacketExamples/EthDot3.dat");
 	READ_FILE_INTO_BUFFER(2, "PacketExamples/EthDot3_2.dat");
@@ -178,12 +197,12 @@ PTF_TEST_CASE(EthDot3LayerCreateEditTest)
 	ethDot3NewLayer.setSourceMac(pcpp::MacAddress("00:1a:a1:97:d1:85"));
 	ethDot3NewLayer.getEthHeader()->length = htobe16(121);
 
-	pcpp::PayloadLayer newPayloadLayer2("424203000003027c8000000c305dd100000000008000000c305dd10080050000140002000f000000500000000"
+	auto newPayloadLayer2 = new pcpp::PayloadLayer("424203000003027c8000000c305dd100000000008000000c305dd10080050000140002000f000000500000000"
 			"00000000000000000000000000000000000000000000000000000000000000055bf4e8a44b25d442868549c1bf7720f00030d408000001a"
 			"a197d180137c8005000c305dd10000030d40808013");
 
 	PTF_ASSERT_TRUE(newEthDot3Packet.detachLayer(&newPayloadLayer));
-	PTF_ASSERT_TRUE(newEthDot3Packet.addLayer(&newPayloadLayer2));
+	PTF_ASSERT_TRUE(newEthDot3Packet.addLayer(newPayloadLayer2, true));
 	newEthDot3Packet.computeCalculateFields();
 
 	PTF_ASSERT_BUF_COMPARE(newEthDot3Packet.getRawPacket()->getRawData(), buffer2, bufferLength2);

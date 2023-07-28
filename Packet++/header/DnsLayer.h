@@ -447,7 +447,7 @@ namespace pcpp
 
 	protected:
 		DnsLayer(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet, size_t offsetAdjustment);
-		DnsLayer(size_t offsetAdjustment);
+		explicit DnsLayer(size_t offsetAdjustment);
 
 	private:
 		IDnsResource* m_ResourceList;
@@ -557,7 +557,7 @@ namespace pcpp
 	bool DnsLayer::isDataValid(const uint8_t* data, size_t dataLen, bool dnsOverTcp)
 	{
 		size_t minSize = sizeof(dnshdr) + (dnsOverTcp ? sizeof(uint16_t) : 0);
-		return dataLen >= minSize;
+		return data && dataLen >= minSize;
 	}
 
 } // namespace pcpp

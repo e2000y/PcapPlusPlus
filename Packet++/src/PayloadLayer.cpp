@@ -8,7 +8,7 @@
 namespace pcpp
 {
 
-PayloadLayer::PayloadLayer(const uint8_t* data, size_t dataLen, bool dummy) : Layer()
+PayloadLayer::PayloadLayer(const uint8_t* data, size_t dataLen, bool) : Layer()
 {
 	m_Data = new uint8_t[dataLen];
 	memcpy(m_Data, data, dataLen);
@@ -24,7 +24,7 @@ PayloadLayer::PayloadLayer(const std::string& payloadAsHexStream)
 	if (hexStringToByteArray(payloadAsHexStream, m_Data, m_DataLen) == 0)
 	{
 		delete [] m_Data;
-		m_Data = NULL;
+		m_Data = nullptr;
 		m_DataLen = 0;
 	}
 }

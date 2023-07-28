@@ -42,7 +42,7 @@ namespace pcpp
 		 * When using this constructor an empty raw buffer is allocated (with the size of maxPacketLen) and a new RawPacket is created
 		 * @param[in] maxPacketLen The expected packet length in bytes
 		 */
-		Packet(size_t maxPacketLen = 1);
+		explicit Packet(size_t maxPacketLen = 1);
 
 		/**
 		 * A constructor for creating a new packet with a buffer that is pre-allocated by the user.
@@ -69,7 +69,7 @@ namespace pcpp
 		 * parse only up to a certain OSI layer (for example transport layer) and want to avoid the performance impact and memory consumption of parsing the whole packet.
 		 * Default value is ::OsiModelLayerUnknown which means don't take this parameter into account
 		 */
-		Packet(RawPacket* rawPacket, bool freeRawPacket = false, ProtocolType parseUntil = UnknownProtocol, OsiModelLayer parseUntilLayer = OsiModelLayerUnknown);
+		explicit Packet(RawPacket* rawPacket, bool freeRawPacket = false, ProtocolType parseUntil = UnknownProtocol, OsiModelLayer parseUntilLayer = OsiModelLayerUnknown);
 
 		/**
 		 * A constructor for creating a packet out of already allocated RawPacket. Very useful when parsing packets that came from the network.

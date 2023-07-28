@@ -203,7 +203,7 @@ namespace pcpp
 		 * A c'tor for this class that gets a pointer to the option raw data (byte array)
 		 * @param[in] optionRawData A pointer to the TCP option raw data
 		 */
-		TcpOption(uint8_t* optionRawData) : TLVRecord(optionRawData) { }
+		explicit TcpOption(uint8_t* optionRawData) : TLVRecord(optionRawData) { }
 
 		/**
 		 * A d'tor for this class, currently does nothing
@@ -216,7 +216,7 @@ namespace pcpp
 		 */
 		TcpOptionType getTcpOptionType() const
 		{
-			if (m_Data == NULL)
+			if (m_Data == nullptr)
 				return TCPOPT_Unknown;
 
 			return (TcpOptionType)m_Data->recordType;
@@ -226,8 +226,8 @@ namespace pcpp
 
 		size_t getTotalSize() const
 		{
-			if (m_Data == NULL)
-				return (size_t)0;
+			if (m_Data == nullptr)
+				return 0;
 
 			if (m_Data->recordType == (uint8_t)PCPP_TCPOPT_NOP || m_Data->recordType == (uint8_t)PCPP_TCPOPT_EOL)
 				return sizeof(uint8_t);
@@ -237,11 +237,11 @@ namespace pcpp
 
 		size_t getDataSize() const
 		{
-			if (m_Data == NULL)
+			if (m_Data == nullptr)
 				return 0;
 
 			if (m_Data->recordType == (uint8_t)PCPP_TCPOPT_NOP || m_Data->recordType == (uint8_t)PCPP_TCPOPT_EOL)
-				return (size_t)0;
+				return 0;
 
 			return (size_t)m_Data->recordLen - (2*sizeof(uint8_t));
 		}
@@ -312,7 +312,7 @@ namespace pcpp
 		 * by calling build()
 		 * @param[in] optionType An enum value indicating which option type to build (NOP or EOL)
 		 */
-		TcpOptionBuilder(NopEolOptionTypes optionType);
+		explicit TcpOptionBuilder(NopEolOptionTypes optionType);
 
 		/**
 		 * Build the TcpOption object out of the parameters defined in the c'tor

@@ -12,6 +12,7 @@
 #include "SSHLayer.h"
 #include "DnsLayer.h"
 #include "TelnetLayer.h"
+#include "TpktLayer.h"
 #include "FtpLayer.h"
 #include "SomeIpLayer.h"
 #include "PacketUtils.h"
@@ -33,11 +34,11 @@ TcpOptionBuilder::TcpOptionBuilder(NopEolOptionTypes optionType)
 	switch (optionType)
 	{
 	case EOL:
-		init((uint8_t)PCPP_TCPOPT_EOL, NULL, 0);
+		init((uint8_t)PCPP_TCPOPT_EOL, nullptr, 0);
 		break;
 	case NOP:
 	default:
-		init((uint8_t)PCPP_TCPOPT_NOP, NULL, 0);
+		init((uint8_t)PCPP_TCPOPT_NOP, nullptr, 0);
 		break;
 	}
 }
@@ -52,7 +53,7 @@ TcpOption TcpOptionBuilder::build() const
 		if (m_RecValueLen != 0)
 		{
 			PCPP_LOG_ERROR("TCP NOP and TCP EOL options are 1-byte long and don't have option value. Tried to set option value of size " << m_RecValueLen);
-			return TcpOption(NULL);
+			return TcpOption(nullptr);
 		}
 
 		optionSize = 1;
@@ -64,7 +65,7 @@ TcpOption TcpOptionBuilder::build() const
 	if (optionSize > 1)
 	{
 		recordBuffer[1] = static_cast<uint8_t>(optionSize);
-		if (optionSize > 2 && m_RecValue != NULL)
+		if (optionSize > 2 && m_RecValue != nullptr)
 			memcpy(recordBuffer+2, m_RecValue, m_RecValueLen);
 	}
 
@@ -101,7 +102,7 @@ TcpOption TcpLayer::getNextTcpOption(TcpOption& tcpOption) const
 {
 	TcpOption nextOpt = m_OptionReader.getNextTLVRecord(tcpOption, getOptionsBasePtr(), getHeaderLen() - sizeof(tcphdr));
 	if (nextOpt.isNotNull() && nextOpt.getType() == TCPOPT_DUMMY)
-		return TcpOption(NULL);
+		return TcpOption(nullptr);
 
 	return nextOpt;
 }
@@ -130,7 +131,7 @@ TcpOption TcpLayer::addTcpOptionAfter(const TcpOptionBuilder& optionBuilder, Tcp
 		if (prevOpt.isNull())
 		{
 			PCPP_LOG_ERROR("Previous option of type " << (int)prevOptionType << " not found, cannot add a new TCP option");
-			return TcpOption(NULL);
+			return TcpOption(nullptr);
 		}
 
 		offset = prevOpt.getRecordBasePtr() + prevOpt.getTotalSize() - m_Data;
@@ -207,7 +208,7 @@ TcpOption TcpLayer::addTcpOptionAt(const TcpOptionBuilder& optionBuilder, int of
 	{
 		PCPP_LOG_ERROR("Could not extend TcpLayer in [" << sizeToExtend << "] bytes");
 		newOption.purgeRecordData();
-		return TcpOption(NULL);
+		return TcpOption(nullptr);
 	}
 
 	memcpy(m_Data + offset, newOption.getRecordBasePtr(), newOption.getTotalSize());
@@ -230,7 +231,7 @@ void TcpLayer::adjustTcpOptionTrailer(size_t totalOptSize)
 		newNumberOfTrailingBytes++;
 
 	if (newNumberOfTrailingBytes < m_NumOfTrailingBytes)
-		shortenLayer(sizeof(tcphdr)+totalOptSize, m_NumOfTrailingBytes - newNumberOfTrailingBytes);
+		shortenLayer(sizeof(tcphdr)+totalOptSize, m_NumOfTrailingBytes - newNumberOfTrailingBytes - 1);
 	else if (newNumberOfTrailingBytes > m_NumOfTrailingBytes)
 		extendLayer(sizeof(tcphdr)+totalOptSize, newNumberOfTrailingBytes - m_NumOfTrailingBytes);
 
@@ -248,43 +249,30 @@ uint16_t TcpLayer::calculateChecksum(bool writeResultToPacket)
 	uint16_t checksumRes = 0;
 	uint16_t currChecksumValue = tcpHdr->headerChecksum;
 
-	if (m_PrevLayer != NULL)
+	if (m_PrevLayer != nullptr)
 	{
 		tcpHdr->headerChecksum = 0;
-		ScalarBuffer<uint16_t> vec[2];
-		PCPP_LOG_DEBUG("data len = " << m_DataLen);
-		vec[0].buffer = (uint16_t*)m_Data;
-		vec[0].len = m_DataLen;
+		PCPP_LOG_DEBUG("TCP data len = " << m_DataLen);
 
 		if (m_PrevLayer->getProtocol() == IPv4)
 		{
-			uint32_t srcIP = ((IPv4Layer*)m_PrevLayer)->getSrcIPv4Address().toInt();
-			uint32_t dstIP = ((IPv4Layer*)m_PrevLayer)->getDstIPv4Address().toInt();
-			uint16_t pseudoHeader[6];
-			pseudoHeader[0] = srcIP >> 16;
-			pseudoHeader[1] = srcIP & 0xFFFF;
-			pseudoHeader[2] = dstIP >> 16;
-			pseudoHeader[3] = dstIP & 0xFFFF;
-			pseudoHeader[4] = 0xffff & htobe16(m_DataLen);
-			pseudoHeader[5] = htobe16(0x00ff & PACKETPP_IPPROTO_TCP);
-			vec[1].buffer = pseudoHeader;
-			vec[1].len = 12;
-			checksumRes = computeChecksum(vec, 2);
-			PCPP_LOG_DEBUG("calculated checksum = 0x" << std::uppercase << std::hex << checksumRes);
+			IPv4Address srcIP = ((IPv4Layer*)m_PrevLayer)->getSrcIPv4Address();
+			IPv4Address dstIP = ((IPv4Layer*)m_PrevLayer)->getDstIPv4Address();
 
+			checksumRes = pcpp::computePseudoHdrChecksum((uint8_t *) tcpHdr, getDataLen(), IPAddress::IPv4AddressType,
+												PACKETPP_IPPROTO_TCP, srcIP, dstIP);
 
+			PCPP_LOG_DEBUG("calculated IPv4 TCP checksum = 0x" << std::uppercase << std::hex << checksumRes);
 		}
 		else if (m_PrevLayer->getProtocol() == IPv6)
 		{
-			uint16_t pseudoHeader[18];
-			((IPv6Layer*)m_PrevLayer)->getSrcIPv6Address().copyTo((uint8_t*)pseudoHeader);
-			((IPv6Layer*)m_PrevLayer)->getDstIPv6Address().copyTo((uint8_t*)(pseudoHeader+8));
-			pseudoHeader[16] = 0xffff & htobe16(m_DataLen);
-			pseudoHeader[17] = htobe16(0x00ff & PACKETPP_IPPROTO_TCP);
-			vec[1].buffer = pseudoHeader;
-			vec[1].len = 36;
-			checksumRes = computeChecksum(vec, 2);
-			PCPP_LOG_DEBUG("calculated checksum = 0xX" << std::uppercase << std::hex << checksumRes);
+			IPv6Address srcIP = ((IPv6Layer*)m_PrevLayer)->getSrcIPv6Address();
+			IPv6Address dstIP = ((IPv6Layer*)m_PrevLayer)->getDstIPv6Address();
+
+			checksumRes = computePseudoHdrChecksum((uint8_t *) tcpHdr, getDataLen(), IPAddress::IPv6AddressType,
+												   PACKETPP_IPPROTO_TCP, srcIP, dstIP);
+
+			PCPP_LOG_DEBUG("calculated IPv6 TCP checksum = 0xX" << std::uppercase << std::hex << checksumRes);
 		}
 	}
 
@@ -357,7 +345,7 @@ void TcpLayer::parseNextLayer()
 
 	if (HttpMessage::isHttpPort(portDst) && HttpRequestFirstLine::parseMethod((char*)payload, payloadLen) != HttpRequestLayer::HttpMethodUnknown)
 		m_NextLayer = new HttpRequestLayer(payload, payloadLen, this, m_Packet);
-	else if (HttpMessage::isHttpPort(portSrc) && HttpResponseFirstLine::parseStatusCode((char*)payload, payloadLen) != HttpResponseLayer::HttpStatusCodeUnknown)
+	else if (HttpMessage::isHttpPort(portSrc) && HttpResponseFirstLine::parseVersion((char*)payload, payloadLen) != HttpVersion::HttpVersionUnknown && HttpResponseFirstLine::parseStatusCode((char*)payload, payloadLen) != HttpResponseLayer::HttpStatusCodeUnknown)
 		m_NextLayer = new HttpResponseLayer(payload, payloadLen, this, m_Packet);
 	else if (SSLLayer::IsSSLMessage(portSrc, portDst, payload, payloadLen))
 		m_NextLayer = SSLLayer::createSSLMessage(payload, payloadLen, this, m_Packet);
@@ -386,8 +374,12 @@ void TcpLayer::parseNextLayer()
 		m_NextLayer = new FtpResponseLayer(payload, payloadLen, this, m_Packet);
 	else if (FtpLayer::isFtpPort(portDst) && FtpLayer::isDataValid(payload, payloadLen))
 		m_NextLayer = new FtpRequestLayer(payload, payloadLen, this, m_Packet);
+	else if (FtpLayer::isFtpDataPort(portSrc) || FtpLayer::isFtpDataPort(portDst))
+		m_NextLayer = new FtpDataLayer(payload, payloadLen, this, m_Packet);
 	else if (SomeIpLayer::isSomeIpPort(portSrc) || SomeIpLayer::isSomeIpPort(portDst))
 		m_NextLayer = SomeIpLayer::parseSomeIpLayer(payload, payloadLen, this, m_Packet);
+	else if (TpktLayer::isDataValid(payload, payloadLen) && TpktLayer::isTpktPort(portSrc, portDst))
+		m_NextLayer =  new TpktLayer(payload, payloadLen, this, m_Packet);
 	else
 		m_NextLayer = new PayloadLayer(payload, payloadLen, this, m_Packet);
 }

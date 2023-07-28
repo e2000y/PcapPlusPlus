@@ -1,6 +1,8 @@
 #ifndef PCAPPP_DPDK_DEVICE
 #define PCAPPP_DPDK_DEVICE
 
+// GCOVR_EXCL_START
+
 #include <pthread.h>
 #include <time.h>
 #include <vector>
@@ -43,12 +45,12 @@
  *    - DpdkDeviceList - a singleton class that initializes the DPDK infrastructure and creates DpdkDevice instances to all available ports.
  *      In addition it allows starting and stopping of worker threads
  *    - MBufRawPacket - a child class to RawPacket which customizes it for working with mbuf
- *    - In addition PcapPlusPlus provides a shell script to initialize DPDK prerequisites: setup-dpdk.sh. This is an easy-to-use script
+ *    - In addition PcapPlusPlus provides a shell script to initialize DPDK prerequisites: setup_dpdk.py. This is an easy-to-use script
  *      that sets up huge-pages, loads DPDK kernel module and sets up the NICs that will be used by DPDK. This script must run before an
  *      application that uses DPDK runs. If you forgot to run it the application will fail with an appropriate error that will remind
  *
  * DPDK initialization using PcapPlusPlus:
- *    - Before application runs: run the setup-dpdk.sh script
+ *    - Before application runs: run the setup_dpdk.py script
  *    - On application startup call DpdkDeviceList#initDpdk() static method to initialize DPDK infrastructure and DpdkDevice instances
  *    - Open the relevant DpdkDevice(s)
  *    - Send & receive packets...
@@ -284,7 +286,7 @@ namespace pcpp
 			 * specified, there is a default key defined inside DpdkDevice
 			 * @param[in] rssKeyLength The length in bytes of the array pointed by rssKey. Default value is the length of default rssKey
 			 */
-			DpdkDeviceConfiguration(uint16_t receiveDescriptorsNumber = 128,
+			explicit DpdkDeviceConfiguration(uint16_t receiveDescriptorsNumber = 128,
 					uint16_t transmitDescriptorsNumber = 512,
 					uint16_t flushTxBufferTimeout = 100,
 					uint64_t rssHashFunction = RSS_DEFAULT,
@@ -361,7 +363,7 @@ namespace pcpp
 			uint64_t rxPacketsDroppedByHW;
 			/** Total number of erroneous packets */
 			uint64_t rxErroneousPackets;
-			/** Total number of RX mbuf allocation failuers */
+			/** Total number of RX mbuf allocation failures */
 			uint64_t rxMbufAlocFailed;
 		};
 
@@ -825,5 +827,7 @@ namespace pcpp
 	};
 
 } // namespace pcpp
+
+// GCOVR_EXCL_STOP
 
 #endif /* PCAPPP_DPDK_DEVICE */

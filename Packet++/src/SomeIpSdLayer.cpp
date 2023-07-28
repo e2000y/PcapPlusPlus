@@ -14,7 +14,7 @@ namespace pcpp
  */
 SomeIpSdOption::~SomeIpSdOption()
 {
-	if (m_ShadowData != NULL)
+	if (m_ShadowData != nullptr)
 		delete[] m_ShadowData;
 }
 
@@ -24,7 +24,7 @@ SomeIpSdOption::OptionType SomeIpSdOption::getType() const {
 
 uint8_t* SomeIpSdOption::getDataPtr() const
 {
-	if (m_DataContainer != NULL)
+	if (m_DataContainer != nullptr)
 		return m_DataContainer->getDataPtr(m_Offset);
 
 	return m_ShadowData;
@@ -287,13 +287,13 @@ SomeIpSdEntry::SomeIpSdEntry(const SomeIpSdLayer *pSomeIpSdLayer, size_t offset)
 
 SomeIpSdEntry::~SomeIpSdEntry()
 {
-	if (m_ShadowData != NULL)
+	if (m_ShadowData != nullptr)
 		delete[] m_ShadowData;
 }
 
 uint8_t *SomeIpSdEntry::getDataPtr() const
 {
-	if (m_Layer != NULL)
+	if (m_Layer != nullptr)
 		return m_Layer->getDataPtr(m_Offset);
 
 	return m_ShadowData;
@@ -631,6 +631,16 @@ uint32_t SomeIpSdLayer::addEntry(const SomeIpSdEntry &entry)
 	return getNumEntries() - 1;
 }
 
+bool SomeIpSdLayer::isDataValid(const uint8_t* data, size_t dataLen)
+{
+	if (!data || dataLen < sizeof(someipsdhdr) + sizeof(uint32_t) || dataLen < sizeof(someipsdhdr) + sizeof(uint32_t) + getLenEntries(data))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 uint32_t SomeIpSdLayer::countOptions()
 {
 	size_t offsetOption = sizeof(someipsdhdr) + sizeof(uint32_t) + getLenEntries() + sizeof(uint32_t);
@@ -711,7 +721,7 @@ bool SomeIpSdLayer::addOptionIndex(uint32_t indexEntry, uint32_t indexOffset)
 		return true;
 	}
 
-	if (indexFirstOption + lenFirstOption + 1 == indexOffset)
+	if (static_cast<uint32_t>(indexFirstOption + lenFirstOption + 1) == indexOffset)
 	{
 		++hdrEntry->nrOpt1;
 		return true;
@@ -727,7 +737,7 @@ bool SomeIpSdLayer::addOptionIndex(uint32_t indexEntry, uint32_t indexOffset)
 		return true;
 	}
 
-	if (indexSecondOption + lenSecondOption + 1 == indexOffset)
+	if (static_cast<uint32_t>(indexSecondOption + lenSecondOption + 1) == indexOffset)
 	{
 		++hdrEntry->nrOpt2;
 		return true;
@@ -768,7 +778,12 @@ SomeIpSdLayer::OptionPtr SomeIpSdLayer::parseOption(SomeIpSdOption::OptionType t
 
 size_t SomeIpSdLayer::getLenEntries() const
 {
-	return be32toh(*((uint32_t *)(m_Data + sizeof(someipsdhdr))));
+	return getLenEntries(m_Data);
+}
+
+size_t SomeIpSdLayer::getLenEntries(const uint8_t* data)
+{
+	return be32toh(*((uint32_t *)(data + sizeof(someipsdhdr))));
 }
 
 size_t SomeIpSdLayer::getLenOptions() const

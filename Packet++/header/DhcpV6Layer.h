@@ -199,7 +199,7 @@ namespace pcpp
 		 * A c'tor for this class that gets a pointer to the option raw data (byte array)
 		 * @param[in] optionRawData A pointer to the option raw data
 		 */
-		DhcpV6Option(uint8_t* optionRawData) : TLVRecord(optionRawData) { }
+		explicit DhcpV6Option(uint8_t* optionRawData) : TLVRecord(optionRawData) { }
 
 		/**
 		 * A d'tor for this class, currently does nothing
@@ -447,7 +447,7 @@ namespace pcpp
 
 	bool DhcpV6Layer::isDataValid(const uint8_t* data, size_t dataLen)
 	{
-		return dataLen >= sizeof(dhcpv6_header);
+		return data && dataLen >= sizeof(dhcpv6_header);
 	}
 
 }

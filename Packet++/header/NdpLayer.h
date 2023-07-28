@@ -43,7 +43,7 @@ public:
 	 * A c'tor for this class that gets a pointer to the option raw data (byte array)
 	 * @param[in] optionRawData A pointer to the NDP option raw data
 	 */
-	NdpOption(uint8_t *optionRawData) : TLVRecord(optionRawData) {}
+	explicit NdpOption(uint8_t *optionRawData) : TLVRecord(optionRawData) {}
 
 	/**
 	 * A d'tor for this class, currently does nothing
@@ -56,7 +56,7 @@ public:
 	 */
 	NDPNeighborOptionTypes getNdpOptionType() const
 	{
-		if (m_Data == NULL)
+		if (m_Data == nullptr)
 			return NDPNeighborOptionTypes::NDP_OPTION_UNKNOWN;
 
 		return static_cast<NDPNeighborOptionTypes>(m_Data->recordType);
@@ -66,7 +66,7 @@ public:
 
 	size_t getTotalSize() const
 	{
-		if (m_Data == NULL)
+		if (m_Data == nullptr)
 			return (size_t)0;
 
 		return (size_t)m_Data->recordLen * 8;
@@ -74,7 +74,7 @@ public:
 
 	size_t getDataSize() const
 	{
-		if (m_Data == NULL)
+		if (m_Data == nullptr)
 			return 0;
 
 		return (size_t)m_Data->recordLen * 8 - (2 * sizeof(uint8_t)); // length value is stored in units of 8 octets

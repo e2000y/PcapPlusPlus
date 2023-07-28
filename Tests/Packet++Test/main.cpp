@@ -9,14 +9,14 @@
 
 static struct option PacketTestOptions[] =
 {
-	{"include-tags",  required_argument, 0, 't'},
-	{"exclude-tags",  required_argument, 0, 'x'},
-	{"show-skipped-tests", no_argument, 0, 'w' },
-	{"mem-verbose", no_argument, 0, 'm' },
-	{"verbose", no_argument, 0, 'v' },
-	{"skip-mem-leak-check", no_argument, 0, 's' },
-	{"help", no_argument, 0, 'h' },
-	{0, 0, 0, 0}
+	{"include-tags",  required_argument, nullptr, 't'},
+	{"exclude-tags",  required_argument, nullptr, 'x'},
+	{"show-skipped-tests", no_argument, nullptr, 'w' },
+	{"mem-verbose", no_argument, nullptr, 'm' },
+	{"verbose", no_argument, nullptr, 'v' },
+	{"skip-mem-leak-check", no_argument, nullptr, 's' },
+	{"help", no_argument, nullptr, 'h' },
+	{nullptr, 0, nullptr, 0}
 };
 
 void printUsage()
@@ -87,6 +87,7 @@ int main(int argc, char* argv[])
 	// The logger singleton looks like a memory leak. Invoke it before starting the memory check
 	pcpp::Logger::getInstance();
 
+	// cppcheck-suppress knownConditionTrueFalse
 	if (skipMemLeakCheck)
 	{
 		if (configTags != "")
@@ -109,6 +110,7 @@ int main(int argc, char* argv[])
 
 	pcpp_tests::testSetUp();
 
+	PTF_RUN_TEST(OUILookup, "eth2;eth;oui");
 	PTF_RUN_TEST(EthPacketCreation, "eth2;eth");
 	PTF_RUN_TEST(EthPacketPointerCreation, "eth2;eth");
 	PTF_RUN_TEST(EthAndArpPacketParsing, "eth2;eth;arp");
@@ -157,9 +159,12 @@ int main(int argc, char* argv[])
 	PTF_RUN_TEST(ResizeLayerTest, "packet;resize");
 	PTF_RUN_TEST(PrintPacketAndLayers, "packet;print");
 
+	PTF_RUN_TEST(HttpRequestParseMethodTest, "http");
 	PTF_RUN_TEST(HttpRequestLayerParsingTest, "http");
 	PTF_RUN_TEST(HttpRequestLayerCreationTest, "http");
 	PTF_RUN_TEST(HttpRequestLayerEditTest, "http");
+	PTF_RUN_TEST(HttpResponseParseStatusCodeTest, "http");
+	PTF_RUN_TEST(HttpResponseParseVersionTest, "http");
 	PTF_RUN_TEST(HttpResponseLayerParsingTest, "http");
 	PTF_RUN_TEST(HttpResponseLayerCreationTest, "http");
 	PTF_RUN_TEST(HttpResponseLayerEditTest, "http");
@@ -194,6 +199,7 @@ int main(int argc, char* argv[])
 	PTF_RUN_TEST(SSLMultipleRecordParsing2Test, "ssl");
 	PTF_RUN_TEST(SSLMultipleRecordParsing3Test, "ssl");
 	PTF_RUN_TEST(SSLMultipleRecordParsing4Test, "ssl");
+	PTF_RUN_TEST(SSLMultipleRecordParsing5Test, "ssl");
 	PTF_RUN_TEST(SSLPartialCertificateParseTest, "ssl");
 	PTF_RUN_TEST(SSLNewSessionTicketParseTest, "ssl");
 	PTF_RUN_TEST(SSLMalformedPacketParsing, "ssl");
@@ -206,6 +212,8 @@ int main(int argc, char* argv[])
 	PTF_RUN_TEST(SllPacketCreationTest, "sll");
 	PTF_RUN_TEST(NullLoopbackTest, "null_loopback");
 
+	PTF_RUN_TEST(NflogPacketParsingTest, "nflog");
+
 	PTF_RUN_TEST(DhcpParsingTest, "dhcp");
 	PTF_RUN_TEST(DhcpCreationTest, "dhcp");
 	PTF_RUN_TEST(DhcpEditTest, "dhcp");
@@ -216,9 +224,12 @@ int main(int argc, char* argv[])
 	PTF_RUN_TEST(Igmpv3QueryCreateAndEditTest, "igmp");
 	PTF_RUN_TEST(Igmpv3ReportCreateAndEditTest, "igmp");
 
+	PTF_RUN_TEST(SipRequestParseMethodTest, "sip");
 	PTF_RUN_TEST(SipRequestLayerParsingTest, "sip");
 	PTF_RUN_TEST(SipRequestLayerCreationTest, "sip");
 	PTF_RUN_TEST(SipRequestLayerEditTest, "sip");
+	PTF_RUN_TEST(SipResponseParseStatusCodeTest, "sip");
+	PTF_RUN_TEST(SipResponseParseVersionCodeTest, "sip");
 	PTF_RUN_TEST(SipResponseLayerParsingTest, "sip");
 	PTF_RUN_TEST(SipResponseLayerCreationTest, "sip");
 	PTF_RUN_TEST(SipResponseLayerEditTest, "sip");
@@ -255,6 +266,8 @@ int main(int argc, char* argv[])
 	PTF_RUN_TEST(TelnetCommandParsingTests, "telnet");
 	PTF_RUN_TEST(TelnetDataParsingTests, "telnet");
 
+	PTF_RUN_TEST(TpktLayerTest, "tpkt");
+
 	PTF_RUN_TEST(IcmpV6ParsingTest, "icmpv6");
 	PTF_RUN_TEST(IcmpV6CreationTest, "icmpv6");
 	PTF_RUN_TEST(IcmpV6EditTest, "icmpv6");
@@ -267,9 +280,17 @@ int main(int argc, char* argv[])
 	PTF_RUN_TEST(LLCCreationTests, "llc");
 
 	PTF_RUN_TEST(StpConfigurationParsingTests, "stp");
+	PTF_RUN_TEST(StpConfigurationCreationTests, "stp");
+	PTF_RUN_TEST(StpConfigurationEditTests, "stp");
 	PTF_RUN_TEST(StpTopologyChangeParsingTests, "stp");
+	PTF_RUN_TEST(StpTopologyChangeCreationTests, "stp");
+	PTF_RUN_TEST(StpTopologyChangeEditTests, "stp");
 	PTF_RUN_TEST(RapidStpParsingTests, "stp");
+	PTF_RUN_TEST(RapidStpCreationTests, "stp");
+	PTF_RUN_TEST(RapidStpEditTests, "stp");
 	PTF_RUN_TEST(MultipleStpParsingTests, "stp");
+	PTF_RUN_TEST(MultipleStpCreationTests, "stp");
+	PTF_RUN_TEST(MultipleStpEditTests, "stp");
 
 	PTF_RUN_TEST(SomeIpPortTest, "someip");
 	PTF_RUN_TEST(SomeIpParsingTest, "someip");
@@ -284,6 +305,11 @@ int main(int argc, char* argv[])
 	PTF_RUN_TEST(WakeOnLanParsingTests, "wol");
 	PTF_RUN_TEST(WakeOnLanCreationTests, "wol");
 	PTF_RUN_TEST(WakeOnLanEditTests, "wol");
+
+	PTF_RUN_TEST(VrrpParsingTest, "vrrp");
+	PTF_RUN_TEST(VrrpCreateAndEditTest, "vrrp");
+
+	PTF_RUN_TEST(CotpLayerTest, "cotp");
 
 	PTF_END_RUNNING_TESTS;
 }

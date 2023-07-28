@@ -49,6 +49,7 @@ namespace pcpp
 		PacketLogModuleGreLayer, ///< GreLayer module (Packet++)
 		PacketLogModuleSSLLayer, ///< SSLLayer module (Packet++)
 		PacketLogModuleSllLayer, ///< SllLayer module (Packet++)
+		PacketLogModuleNflogLayer, ///< NflogLayer module (Packet++)
 		PacketLogModuleDhcpLayer, ///< DhcpLayer module (Packet++)
 		PacketLogModuleDhcpV6Layer, ///< DhcpV6Layer module (Packet++)
 		PacketLogModuleIgmpLayer, ///< IgmpLayer module (Packet++)
@@ -58,6 +59,7 @@ namespace pcpp
 		PacketLogModuleGtpLayer, ///< GtpLayer module (Packet++)
 		PacketLogModuleBgpLayer, ///< GtpLayer module (Packet++)
 		PacketLogModuleSSHLayer, ///< SSHLayer module (Packet++)
+		PacketLogModuleVrrpLayer, ///< Vrrp Record module (Packet++)
 		PacketLogModuleTcpReassembly, ///< TcpReassembly module (Packet++)
 		PacketLogModuleIPReassembly, ///< IPReassembly module (Packet++)
 		PacketLogModuleIPSecLayer, ///< IPSecLayers module (Packet++)
@@ -157,7 +159,7 @@ namespace pcpp
 		 * Set all PcapPlusPlus modules to a certain log level
 		 * @param[in] level The log level to set all modules to
 		 */
-		void setAllModlesToLogLevel(LogLevel level) { for (int i=1; i<NumOfLogModules; i++) m_LogModulesArray[i] = level; }
+		void setAllModulesToLogLevel(LogLevel level) { for (int i=1; i<NumOfLogModules; i++) m_LogModulesArray[i] = level; }
 
 		/**
 		 * Set a custom log printer.

@@ -76,7 +76,7 @@ namespace pcpp
 			/**
 			 * A default virtual d'tor
 			 */
-			virtual ~PacketKey() {}
+			virtual ~PacketKey() = default;
 
 			/**
 			 * @return A 4-byte hash value of the packet key
@@ -95,10 +95,10 @@ namespace pcpp
 
 		protected:
 			// private c'tor
-			PacketKey() {}
+			PacketKey() = default;
 
 			// private copy c'tor
-			PacketKey(const PacketKey& other) {}
+			PacketKey(const PacketKey& other) = default;
 		};
 
 
@@ -229,7 +229,7 @@ namespace pcpp
 			{
 				m_FragmentID = other.m_FragmentID;
 				m_SrcIP = other.m_SrcIP;
-				m_SrcIP = other.m_DstIP;
+				m_DstIP = other.m_DstIP;
 				return *this;
 			}
 
@@ -324,7 +324,7 @@ namespace pcpp
 		 * onFragmentsCleanCallback. This parameter is optional, default cookie is NULL
 		 * @param[in] maxPacketsToStore Set the capacity limit of the IP reassembly mechanism. Default capacity is #PCPP_IP_REASSEMBLY_DEFAULT_MAX_PACKETS_TO_STORE
 		 */
-		IPReassembly(OnFragmentsClean onFragmentsCleanCallback = NULL, void *callbackUserCookie = NULL, size_t maxPacketsToStore = PCPP_IP_REASSEMBLY_DEFAULT_MAX_PACKETS_TO_STORE)
+		explicit IPReassembly(OnFragmentsClean onFragmentsCleanCallback = NULL, void *callbackUserCookie = NULL, size_t maxPacketsToStore = PCPP_IP_REASSEMBLY_DEFAULT_MAX_PACKETS_TO_STORE)
 			: m_PacketLRU(maxPacketsToStore), m_OnFragmentsCleanCallback(onFragmentsCleanCallback), m_CallbackUserCookie(callbackUserCookie) {}
 
 		/**
@@ -346,12 +346,14 @@ namespace pcpp
 		 *   the out-of-order fragment list)
 		 * - The input fragment is malformed and will be ignored
 		 * - The input fragment is the last one and the packet is now fully reassembled. In this case the return value will contain
-		 *   a pointer to the reassebmled packet
+		 *   a pointer to the reassembled packet
 		 * @param[in] parseUntil Optional parameter. Parse the reassembled packet until you reach a certain protocol (inclusive). Can be useful for cases when you need to parse only up to a
-		 * certain layer and want to avoid the performance impact and memory consumption of parsing the whole packet. Default value is ::UnknownProtocol which means don't take this
-		 * parameter into account
+		 * certain layer and want to avoid the performance impact and memory consumption of parsing the whole packet. Note that setting this to a protocol which doesn't
+         * include the IP-Layer will result in IPReassembly not finding the IP-Layer and thus failing to work properly. Default value is ::UnknownProtocol which means
+         * don't take this parameter into account
 		 * @param[in] parseUntilLayer Optional parameter. Parse the reassembled packet until you reach a certain layer in the OSI model (inclusive). Can be useful for cases when you need to
 		 * parse only up to a certain OSI layer (for example transport layer) and want to avoid the performance impact and memory consumption of parsing the whole packet.
+         * Note that setting this value to OsiModelPhysicalLayer will result in IPReassembly not finding the IP-layer and thus failing to work properly.
 		 * Default value is ::OsiModelLayerUnknown which means don't take this parameter into account
 		 * @return
 		 * - If the input fragment isn't an IPv4/IPv6 packet or if it isn't an IPv4/IPv6 fragment, the return value is a pointer to the input fragment
@@ -375,12 +377,15 @@ namespace pcpp
 		 *   the out-of-order fragment list)
 		 * - The input fragment is malformed and will be ignored
 		 * - The input fragment is the last one and the packet is now fully reassembled. In this case the return value will contain
-		 *   a pointer to the reassebmled packet
+		 *   a pointer to the reassembled packet
 		 * @param[in] parseUntil Optional parameter. Parse the raw and reassembled packets until you reach a certain protocol (inclusive). Can be useful for cases when you need to parse only up to a
-		 * certain layer and want to avoid the performance impact and memory consumption of parsing the whole packet. Default value is ::UnknownProtocol which means don't take this
-		 * parameter into account
+		 * certain layer and want to avoid the performance impact and memory consumption of parsing the whole packet. Note that setting this to a protocol which doesn't
+         * include the IP-Layer will result in IPReassembly not finding the IP-Layer and thus failing to work properly. Default value is ::UnknownProtocol which means
+         * don't take this parameter into account
 		 * @param[in] parseUntilLayer Optional parameter. Parse the raw and reassembled packets until you reach a certain layer in the OSI model (inclusive). Can be useful for cases when you need to
 		 * parse only up to a certain OSI layer (for example transport layer) and want to avoid the performance impact and memory consumption of parsing the whole packet.
+		 * Note that setting this value to OsiModelPhysicalLayer will result in IPReassembly not finding the IP-layer and thus failing to work properly.
+         *Default value is ::UnknownProtocol which means don't take this parameter into account
 		 * Default value is ::OsiModelLayerUnknown which means don't take this parameter into account
 		 * @return
 		 * - If the input fragment isn't an IPv4/IPv6 packet or if it isn't an IPv4/IPv6 fragment, the return value is a pointer to a Packet object

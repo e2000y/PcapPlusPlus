@@ -1,5 +1,7 @@
 #if defined(USE_DPDK) && defined(__linux__)
 
+// GCOVR_EXCL_START
+
 #define LOG_MODULE PcapLogModuleKniDevice
 
 #include "KniDevice.h"
@@ -489,7 +491,7 @@ uint16_t KniDevice::receivePackets(MBufRawPacketVector& rawPacketsArr)
 	//the following line trashes the log with many messages. Uncomment only if necessary
 	//PCPP_LOG_DEBUG("KNI Captured %d packets", numOfPktsReceived);
 
-	if (unlikely(numOfPktsReceived <= 0))
+	if (unlikely(!numOfPktsReceived))
 	{
 		return 0;
 	}
@@ -532,7 +534,7 @@ uint16_t KniDevice::receivePackets(MBufRawPacket** rawPacketsArr, uint16_t rawPa
 	struct rte_mbuf** mBufArray = CPP_VLA(struct rte_mbuf*, rawPacketArrLength);
 	uint16_t packetsReceived = rte_kni_rx_burst(m_Device, mBufArray, MAX_BURST_SIZE);
 
-	if (unlikely(packetsReceived <= 0))
+	if (unlikely(!packetsReceived))
 	{
 		return 0;
 	}
@@ -572,7 +574,7 @@ uint16_t KniDevice::receivePackets(Packet** packetsArr, uint16_t packetsArrLengt
 	struct rte_mbuf** mBufArray = CPP_VLA(struct rte_mbuf*, packetsArrLength);
 	uint16_t packetsReceived = rte_kni_rx_burst(m_Device, mBufArray, MAX_BURST_SIZE);
 
-	if (unlikely(packetsReceived <= 0))
+	if (unlikely(!packetsReceived))
 	{
 		return 0;
 	}
@@ -1005,4 +1007,7 @@ void KniDevice::close()
 	m_DeviceOpened = false;
 }
 } // namespace pcpp
+
+// GCOVR_EXCL_STOP
+
 #endif /* defined(USE_DPDK) && defined(__linux__) */

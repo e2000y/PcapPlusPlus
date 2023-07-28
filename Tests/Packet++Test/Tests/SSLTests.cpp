@@ -11,7 +11,7 @@
 PTF_TEST_CASE(SSLClientHelloParsingTest)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/SSL-ClientHello1.dat");
 
 	pcpp::Packet clientHelloPacket(&rawPacket1);
@@ -168,7 +168,7 @@ PTF_TEST_CASE(SSLClientHelloParsingTest)
 PTF_TEST_CASE(SSLExtensionWithZeroSizeTest)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/tls_zero_size_ext.dat");
 
 	pcpp::Packet clientHelloPacket(&rawPacket1);
@@ -192,7 +192,7 @@ PTF_TEST_CASE(SSLExtensionWithZeroSizeTest)
 PTF_TEST_CASE(SSLAppDataParsingTest)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/SSL-MultipleAppData.dat");
 
 	pcpp::Packet appDataPacket(&rawPacket1);
@@ -229,7 +229,7 @@ PTF_TEST_CASE(SSLAppDataParsingTest)
 PTF_TEST_CASE(SSLAlertParsingTest)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/SSL-AlertClear.dat");
 	READ_FILE_AND_CREATE_PACKET(2, "PacketExamples/SSL-AlertEnc.dat");
 
@@ -260,12 +260,12 @@ PTF_TEST_CASE(SSLAlertParsingTest)
 
 
 /**
- * Testing: server-hello, change-cipher-spec, hello-request
+ * Testing: server-hello, change-cipher-spec, encrypted handshake message
  */
 PTF_TEST_CASE(SSLMultipleRecordParsingTest)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/SSL-MultipleRecords1.dat");
 
 	pcpp::Packet multipleRecordsPacket(&rawPacket1);
@@ -311,21 +311,11 @@ PTF_TEST_CASE(SSLMultipleRecordParsingTest)
 
 	handshakeLayer = multipleRecordsPacket.getNextLayerOfType<pcpp::SSLHandshakeLayer>(handshakeLayer);
 	PTF_ASSERT_NOT_NULL(handshakeLayer);
-	PTF_ASSERT_EQUAL(handshakeLayer->getHandshakeMessagesCount(), 3);
-	pcpp::SSLHelloRequestMessage* helloRequest = handshakeLayer->getHandshakeMessageOfType<pcpp::SSLHelloRequestMessage>();
-	PTF_ASSERT_NOT_NULL(helloRequest);
-	PTF_ASSERT_EQUAL(helloRequest->getHandshakeType(), pcpp::SSL_HELLO_REQUEST, enum);
-	PTF_ASSERT_EQUAL(helloRequest->getMessageLength(), 4);
-	pcpp::SSLHelloRequestMessage* helloRequest2 = handshakeLayer->getNextHandshakeMessageOfType<pcpp::SSLHelloRequestMessage>(helloRequest);
-	PTF_ASSERT_NOT_NULL(helloRequest2);
-	PTF_ASSERT_TRUE(helloRequest2 != helloRequest);
-	PTF_ASSERT_EQUAL(helloRequest2->getHandshakeType(), pcpp::SSL_HELLO_REQUEST, enum);
-	PTF_ASSERT_EQUAL(helloRequest2->getMessageLength(), 4);
-	helloRequest2 = handshakeLayer->getNextHandshakeMessageOfType<pcpp::SSLHelloRequestMessage>(helloRequest2);
-	PTF_ASSERT_NULL(helloRequest2);
-	PTF_ASSERT_NOT_NULL(handshakeLayer->getHandshakeMessageAt(2));
-	PTF_ASSERT_EQUAL(handshakeLayer->getHandshakeMessageAt(2)->getHandshakeType(), pcpp::SSL_HANDSHAKE_UNKNOWN, enum);
-	PTF_ASSERT_EQUAL(handshakeLayer->getHandshakeMessageAt(2)->getMessageLength(), 32);
+	PTF_ASSERT_EQUAL(handshakeLayer->getHandshakeMessagesCount(), 1);
+	pcpp::SSLUnknownMessage* unknownMessage = handshakeLayer->getHandshakeMessageOfType<pcpp::SSLUnknownMessage>();
+	PTF_ASSERT_NOT_NULL(unknownMessage);
+	PTF_ASSERT_EQUAL(unknownMessage->getHandshakeType(), pcpp::SSL_HANDSHAKE_UNKNOWN, enum);
+	PTF_ASSERT_EQUAL(unknownMessage->getMessageLength(), 40);
 } // SSLMultipleRecordParsingTest
 
 
@@ -336,7 +326,7 @@ PTF_TEST_CASE(SSLMultipleRecordParsingTest)
 PTF_TEST_CASE(SSLMultipleRecordParsing2Test)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/SSL-MultipleRecords2.dat");
 
@@ -365,7 +355,7 @@ PTF_TEST_CASE(SSLMultipleRecordParsing2Test)
 PTF_TEST_CASE(SSLMultipleRecordParsing3Test)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/SSL-MultipleRecords3.dat");
 
@@ -429,7 +419,7 @@ PTF_TEST_CASE(SSLMultipleRecordParsing3Test)
 PTF_TEST_CASE(SSLMultipleRecordParsing4Test)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/SSL-MultipleRecords4.dat");
 
@@ -461,10 +451,48 @@ PTF_TEST_CASE(SSLMultipleRecordParsing4Test)
 
 
 
+/**
+ * Testing: change-cipher-spec, encrypted-handshake-message, application-data
+ */
+PTF_TEST_CASE(SSLMultipleRecordParsing5Test)
+{
+	timeval time;
+	gettimeofday(&time, nullptr);
+	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/SSL-MultipleRecords5.dat");
+
+	pcpp::Packet multipleRecordsPacket(&rawPacket1);
+
+	pcpp::SSLChangeCipherSpecLayer* ccsLayer = multipleRecordsPacket.getLayerOfType<pcpp::SSLChangeCipherSpecLayer>();
+	PTF_ASSERT_NOT_NULL(ccsLayer);
+	PTF_ASSERT_EQUAL(ccsLayer->getRecordVersion().asEnum(), pcpp::SSLVersion::TLS1_2, enum);
+	PTF_ASSERT_EQUAL(ccsLayer->getRecordType(), pcpp::SSL_CHANGE_CIPHER_SPEC, enum);
+	PTF_ASSERT_EQUAL(ccsLayer->getHeaderLen(), 6);
+
+	pcpp::SSLHandshakeLayer* handshakeLayer = multipleRecordsPacket.getLayerOfType<pcpp::SSLHandshakeLayer>();
+	PTF_ASSERT_NOT_NULL(handshakeLayer);
+	PTF_ASSERT_EQUAL(handshakeLayer->getHandshakeMessagesCount(), 1);
+	pcpp::SSLUnknownMessage* unknownMessage = handshakeLayer->getHandshakeMessageOfType<pcpp::SSLUnknownMessage>();
+	PTF_ASSERT_NOT_NULL(unknownMessage);
+	PTF_ASSERT_EQUAL(unknownMessage->getHandshakeType(), pcpp::SSL_HANDSHAKE_UNKNOWN, enum);
+	PTF_ASSERT_EQUAL(unknownMessage->getMessageLength(), 40);
+
+	pcpp::SSLApplicationDataLayer* appDataLayer = multipleRecordsPacket.getLayerOfType<pcpp::SSLApplicationDataLayer>();
+	PTF_ASSERT_NOT_NULL(appDataLayer);
+	PTF_ASSERT_EQUAL(appDataLayer->getRecordVersion().asEnum(), pcpp::SSLVersion::TLS1_2, enum);
+	PTF_ASSERT_EQUAL(appDataLayer->getRecordType(), pcpp::SSL_APPLICATION_DATA, enum);
+	PTF_ASSERT_EQUAL(appDataLayer->getEncryptedDataLen(), 64);
+	PTF_ASSERT_EQUAL(appDataLayer->getEncryptedData()[0], 0, hex);
+	PTF_ASSERT_EQUAL(appDataLayer->getEncryptedData()[16], 0x07, hex);
+	PTF_ASSERT_EQUAL(appDataLayer->getEncryptedData()[61], 0x92, hex);
+	PTF_ASSERT_NULL(appDataLayer->getNextLayer());
+} // SSLMultipleRecordParsing5Test
+
+
+
 PTF_TEST_CASE(SSLPartialCertificateParseTest)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/SSL-PartialCertificate1.dat");
 
@@ -506,7 +534,7 @@ PTF_TEST_CASE(SSLPartialCertificateParseTest)
 PTF_TEST_CASE(SSLNewSessionTicketParseTest)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/SSL-NewSessionTicket.dat");
 
@@ -531,7 +559,7 @@ PTF_TEST_CASE(SSLNewSessionTicketParseTest)
 PTF_TEST_CASE(SSLMalformedPacketParsing)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/ssl-malformed1.dat");
 
@@ -548,7 +576,7 @@ PTF_TEST_CASE(SSLMalformedPacketParsing)
 PTF_TEST_CASE(TLS1_3ParsingTest)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/tls1_3_client_hello1.dat");
 	READ_FILE_AND_CREATE_PACKET(2, "PacketExamples/tls1_3_client_hello2.dat");
@@ -702,7 +730,7 @@ PTF_TEST_CASE(TLSCipherSuiteTest)
 PTF_TEST_CASE(ClientHelloTLSFingerprintTest)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/tls1_3_client_hello1.dat");
 	pcpp::Packet tls13ClientHello1(&rawPacket1);
@@ -734,7 +762,7 @@ PTF_TEST_CASE(ClientHelloTLSFingerprintTest)
 PTF_TEST_CASE(ServerHelloTLSFingerprintTest)
 {
 	timeval time;
-	gettimeofday(&time, NULL);
+	gettimeofday(&time, nullptr);
 
 	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/SSL-MultipleRecords1.dat");
 

@@ -205,7 +205,7 @@ namespace pcpp
 			 * A c'tor for this class that gets a pointer to the option raw data (byte array)
 			 * @param[in] optionRawData A pointer to the attribute raw data
 			 */
-			IPv6Option(uint8_t* optionRawData) : TLVRecord(optionRawData) { }
+			explicit IPv6Option(uint8_t* optionRawData) : TLVRecord(optionRawData) { }
 
 			/**
 			 * A d'tor for this class, currently does nothing
@@ -216,6 +216,9 @@ namespace pcpp
 
 			size_t getTotalSize() const
 			{
+				if (m_Data == nullptr)
+					return 0;
+
 				if (m_Data->recordType == Pad0OptionType)
 					return sizeof(uint8_t);
 
@@ -224,8 +227,8 @@ namespace pcpp
 
 			size_t getDataSize() const
 			{
-				if (m_Data->recordType == Pad0OptionType)
-					return (size_t)0;
+				if (m_Data == nullptr || m_Data->recordType == Pad0OptionType)
+					return 0;
 
 				return (size_t)m_Data->recordLen;
 			}
@@ -325,7 +328,7 @@ namespace pcpp
 	protected:
 
 		/** A private c'tor to keep this object from being constructed */
-		IPv6TLVOptionHeader(const std::vector<IPv6TLVOptionBuilder>& options);
+		explicit IPv6TLVOptionHeader(const std::vector<IPv6TLVOptionBuilder>& options);
 
 		IPv6TLVOptionHeader(IDataContainer* dataContainer, size_t offset);
 
@@ -352,7 +355,7 @@ namespace pcpp
 		 * @param[in] options A vector of IPv6TLVOptionHeader#TLVOptionBuilder instances which define the options that will be stored in the
 		 * extension data. Notice this vector is read-only and its content won't be modified
 		 */
-		IPv6HopByHopHeader(const std::vector<IPv6TLVOptionBuilder>& options) : IPv6TLVOptionHeader(options) { m_ExtType = IPv6HopByHop; }
+		explicit IPv6HopByHopHeader(const std::vector<IPv6TLVOptionBuilder>& options) : IPv6TLVOptionHeader(options) { m_ExtType = IPv6HopByHop; }
 
 	private:
 
@@ -377,7 +380,7 @@ namespace pcpp
 		 * @param[in] options A vector of IPv6TLVOptionHeader#TLVOptionBuilder instances which define the options that will be stored in the
 		 * extension data. Notice this vector is read-only and its content won't be modified
 		 */
-		IPv6DestinationHeader(const std::vector<IPv6TLVOptionBuilder>& options) : IPv6TLVOptionHeader(options) { m_ExtType = IPv6Destination; }
+		explicit IPv6DestinationHeader(const std::vector<IPv6TLVOptionBuilder>& options) : IPv6TLVOptionHeader(options) { m_ExtType = IPv6Destination; }
 
 	private:
 

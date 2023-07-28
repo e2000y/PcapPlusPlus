@@ -7,17 +7,6 @@
 #include "MacAddress.h"
 #include <string.h>
 
-#ifndef PCPP_DEPRECATED
-#if defined(__GNUC__) || defined(__clang__)
-#define PCPP_DEPRECATED __attribute__((deprecated))
-#elif defined(_MSC_VER)
-#define PCPP_DEPRECATED __declspec(deprecated)
-#else
-#pragma message("WARNING: DEPRECATED feature is not implemented for this compiler")
-#define PCPP_DEPRECATED
-#endif
-#endif
-
 /// @file
 
 /**
@@ -417,7 +406,7 @@ namespace pcpp
 		 * A c'tor for this class that gets a pointer to the option raw data (byte array)
 		 * @param[in] optionRawData A pointer to the option raw data
 		 */
-		DhcpOption(uint8_t* optionRawData) : TLVRecord(optionRawData) { }
+		explicit DhcpOption(uint8_t* optionRawData) : TLVRecord(optionRawData) { }
 
 		/**
 		 * A d'tor for this class, currently does nothing
@@ -454,7 +443,7 @@ namespace pcpp
 		 */
 		std::string getValueAsString(int valueOffset = 0) const
 		{
-			if (m_Data->recordLen - valueOffset < 1)
+			if (m_Data == nullptr || m_Data->recordLen - valueOffset < 1)
 				return "";
 
 			return std::string((const char*)m_Data->recordValue + valueOffset, (int)m_Data->recordLen - valueOffset);
@@ -485,6 +474,9 @@ namespace pcpp
 
 		size_t getTotalSize() const
 		{
+			if (m_Data == nullptr)
+				return 0;
+
 			if (m_Data->recordType == (uint8_t)DHCPOPT_END || m_Data->recordType == (uint8_t)DHCPOPT_PAD)
 				return sizeof(uint8_t);
 
@@ -493,6 +485,9 @@ namespace pcpp
 
 		size_t getDataSize() const
 		{
+			if (m_Data == nullptr)
+				return 0;
+
 			if (m_Data->recordType == (uint8_t)DHCPOPT_END || m_Data->recordType == (uint8_t)DHCPOPT_PAD)
 				return 0;
 
@@ -696,20 +691,10 @@ namespace pcpp
 		void setClientHardwareAddress(const MacAddress& addr);
 
 		/**
-		 * @deprecated Deprecated due to typo. Please use getMessageType()
-		 */
-		PCPP_DEPRECATED DhcpMessageType getMesageType() const { return getMessageType(); };
-
-		/**
 		 * @return DHCP message type as extracted from ::DHCPOPT_DHCP_MESSAGE_TYPE option. If this option doesn't exist the value of
 		 * ::DHCP_UNKNOWN_MSG_TYPE is returned
 		 */
 		DhcpMessageType getMessageType() const;
-
-		/**
-		 * @deprecated Deprecated due to typo. Please use setMessageType()
-		 */
-		bool setMesageType(DhcpMessageType msgType) { return setMessageType(msgType); };
 
 		/**
 		 * Set DHCP message type. This method searches for existing ::DHCPOPT_DHCP_MESSAGE_TYPE option. If found, it sets the requested

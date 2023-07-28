@@ -5,17 +5,6 @@
 #include "SSLCommon.h"
 #include "PointerVector.h"
 
-#ifndef PCPP_DEPRECATED
-#if defined(__GNUC__) || defined(__clang__)
-#define PCPP_DEPRECATED __attribute__((deprecated))
-#elif defined(_MSC_VER)
-#define PCPP_DEPRECATED __declspec(deprecated)
-#else
-#pragma message("WARNING: DEPRECATED feature is not implemented for this compiler")
-#define PCPP_DEPRECATED
-#endif
-#endif
-
 /**
  * @file
  * See detailed explanation of the TLS/SSL protocol support in PcapPlusPlus in SSLLayer.h
@@ -124,7 +113,7 @@ public:
 	 * C'tor for this class
 	 * @param[in] data The raw data for the extension
 	 */
-	SSLExtension(uint8_t* data);
+	explicit SSLExtension(uint8_t* data);
 
 	virtual ~SSLExtension() { }
 
@@ -187,7 +176,7 @@ public:
 	 * C'tor for this class
 	 * @param[in] data The raw data for the extension
 	 */
-	SSLServerNameIndicationExtension(uint8_t* data) : SSLExtension(data) {}
+	explicit SSLServerNameIndicationExtension(uint8_t* data) : SSLExtension(data) {}
 
 	/**
 	 * @return The hostname written in the extension data
@@ -208,7 +197,7 @@ public:
 	 * C'tor for this class
 	 * @param[in] data The raw data for the extension
 	 */
-	SSLSupportedVersionsExtension(uint8_t* data) : SSLExtension(data) {}
+	explicit SSLSupportedVersionsExtension(uint8_t* data) : SSLExtension(data) {}
 
 	/**
 	 * @return The list of supported versions mentioned in the extension data
@@ -229,7 +218,7 @@ class TLSSupportedGroupsExtension : public SSLExtension
 	 * C'tor for this class
 	 * @param[in] data The raw data for the extension
 	 */
-	TLSSupportedGroupsExtension(uint8_t* data) : SSLExtension(data) {}
+	explicit TLSSupportedGroupsExtension(uint8_t* data) : SSLExtension(data) {}
 
 	/**
 	 * @return A vector of the supported groups (also known as "Elliptic Curves")
@@ -250,7 +239,7 @@ class TLSECPointFormatExtension : public SSLExtension
 	 * C'tor for this class
 	 * @param[in] data The raw data for the extension
 	 */
-	TLSECPointFormatExtension(uint8_t* data) : SSLExtension(data) {}
+	explicit TLSECPointFormatExtension(uint8_t* data) : SSLExtension(data) {}
 
 	/**
 	 * @return A vector of the elliptic curves point formats
@@ -320,11 +309,6 @@ class SSLHandshakeMessage
 public:
 
 	virtual ~SSLHandshakeMessage() {}
-
-	/**
-	 * @deprecated Deprecated due to typo. Please use createHandshakeMessage()
-	 */
-	PCPP_DEPRECATED static SSLHandshakeMessage* createHandhakeMessage(uint8_t* data, size_t dataLen, SSLHandshakeLayer* container) { return createHandshakeMessage(data, dataLen, container);}
 
 	/**
 	 * A factory method for creating instances of handshake messages from raw data
@@ -499,11 +483,6 @@ public:
 	int getExtensionCount() const;
 
 	/**
-	 * @deprecated Deprecated due to typo. Please use getExtensionsLength()
-	 */
-	PCPP_DEPRECATED uint16_t getExtensionsLenth() const { return getExtensionsLength(); };
-
-	/**
 	 * @return The size (in bytes) of all extensions data in this message. Extracted from the "extensions length" field
 	 */
 	uint16_t getExtensionsLength() const;
@@ -673,11 +652,6 @@ public:
 	 * @return The number of extensions in this message
 	 */
 	int getExtensionCount() const;
-
-	/**
-	 * @deprecated Deprecated due to typo. Please use getExtensionLength()
-	 */
-	PCPP_DEPRECATED uint16_t getExtensionsLenth() const { return getExtensionsLength(); };
 
 	/**
 	 * @return The size (in bytes) of all extensions data in this message. Extracted from the "extensions length" field

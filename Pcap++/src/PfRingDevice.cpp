@@ -1,5 +1,7 @@
 #ifdef USE_PF_RING
 
+// GCOVR_EXCL_START
+
 #define LOG_MODULE PcapLogModulePfRingDevice
 
 #include "PfRingDevice.h"
@@ -606,6 +608,7 @@ void PfRingDevice::captureThreadMain(std::condition_variable* startCond, std::mu
 		}
 		else if (recvRes < 0)
 		{
+			// cppcheck-suppress shiftNegative
 			PCPP_LOG_ERROR("pfring_recv returned an error: [Err=" << recvRes << "]");
 		}
 	}
@@ -718,6 +721,7 @@ void PfRingDevice::setPfRingDeviceAttributes()
 	// set interface MTU
 	int mtu = pfring_get_mtu_size(ring);
 	if (mtu < 0)
+		// cppcheck-suppress shiftNegative
 		PCPP_LOG_ERROR("Could not get MTU. pfring_get_mtu_size returned an error: " << mtu);
 	else
 		m_DeviceMTU = mtu + sizeof(ether_header) + sizeof(vlan_header);
@@ -881,5 +885,7 @@ void PfRingDevice::CoreConfiguration::clear()
 }
 
 } // namespace pcpp
+
+// GCOVR_EXCL_STOP
 
 #endif /* USE_PF_RING */

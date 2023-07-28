@@ -5,16 +5,17 @@
 #include "PayloadLayer.h"
 #include "UdpLayer.h"
 #include "TcpLayer.h"
-#include "SctpLayer.h"
 #include "IcmpLayer.h"
 #include "GreLayer.h"
 #include "IgmpLayer.h"
 #include "IPSecLayer.h"
+#include "VrrpLayer.h"
 #include "PacketUtils.h"
 #include <string.h>
 #include <sstream>
 #include "Logger.h"
 #include "EndianPortable.h"
+#include "SctpLayer.h"
 
 namespace pcpp
 {
@@ -58,7 +59,7 @@ IPv4OptionBuilder::IPv4OptionBuilder(const IPv4TimestampOptionValue& timestampVa
 {
 	m_RecType = (uint8_t)IPV4OPT_Timestamp;
 	m_RecValueLen = 0;
-	m_RecValue = NULL;
+	m_RecValue = nullptr;
 
 	if (timestampValue.type == IPv4TimestampOptionValue::Unknown)
 	{
@@ -130,7 +131,7 @@ IPv4OptionBuilder::IPv4OptionBuilder(const IPv4TimestampOptionValue& timestampVa
 IPv4Option IPv4OptionBuilder::build() const
 {
 	if (!m_BuilderParamsValid)
-		return IPv4Option(NULL);
+		return IPv4Option(nullptr);
 
 	size_t optionSize = m_RecValueLen + 2 * sizeof(uint8_t);
 
@@ -140,7 +141,7 @@ IPv4Option IPv4OptionBuilder::build() const
 		if (m_RecValueLen != 0)
 		{
 			PCPP_LOG_ERROR("Can't set IPv4 NOP option or IPv4 End-of-options option with size different than 0, tried to set size " << (int)m_RecValueLen);
-			return IPv4Option(NULL);
+			return IPv4Option(nullptr);
 		}
 
 		optionSize = sizeof(uint8_t);
@@ -152,7 +153,7 @@ IPv4Option IPv4OptionBuilder::build() const
 	if (optionSize > 1)
 	{
 		recordBuffer[1] = static_cast<uint8_t>(optionSize);
-		if (optionSize > 2 && m_RecValue != NULL)
+		if (optionSize > 2 && m_RecValue != nullptr)
 			memcpy(recordBuffer + 2, m_RecValue, m_RecValueLen);
 	}
 
@@ -178,7 +179,7 @@ void IPv4Layer::initLayer()
 	m_TempHeaderExtension = 0;
 }
 
-void IPv4Layer::initLayerInPacket(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet, bool setTotalLenAsDataLen)
+void IPv4Layer::initLayerInPacket(bool setTotalLenAsDataLen)
 {
 	m_Protocol = IPv4;
 	m_NumOfTrailingBytes = 0;
@@ -207,12 +208,12 @@ IPv4Layer::IPv4Layer()
 
 IPv4Layer::IPv4Layer(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet, bool setTotalLenAsDataLen) : Layer(data, dataLen, prevLayer, packet)
 {
-	initLayerInPacket(data, dataLen, prevLayer, packet, setTotalLenAsDataLen);
+	initLayerInPacket(setTotalLenAsDataLen);
 }
 
 IPv4Layer::IPv4Layer(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet) : Layer(data, dataLen, prevLayer, packet)
 {
-	initLayerInPacket(data, dataLen, prevLayer, packet, true);
+	initLayerInPacket(true);
 }
 
 IPv4Layer::IPv4Layer(const IPv4Address& srcIP, const IPv4Address& dstIP)
@@ -328,6 +329,17 @@ void IPv4Layer::parseNextLayer()
 			? static_cast<Layer*>(new IPv6Layer(payload, payloadLen, this, m_Packet))
 			: static_cast<Layer*>(new PayloadLayer(payload, payloadLen, this, m_Packet));
 		break;
+	case PACKETPP_IPPROTO_VRRP:
+	{
+		auto vrrpVer = VrrpLayer::getVersionFromData(payload, payloadLen);
+		if (vrrpVer == VRRPv2)
+			m_NextLayer = new VrrpV2Layer(payload, payloadLen, this, m_Packet);
+		else if (vrrpVer == VRRPv3)
+			m_NextLayer = new VrrpV3Layer(payload, payloadLen, this, m_Packet, IPAddress::IPv4AddressType);
+		else
+			m_NextLayer = new PayloadLayer(payload, payloadLen, this, m_Packet);
+		break;
+	}
 	case PACKETPP_IPPROTO_SCTP:
  		m_NextLayer = SctpLayer::isDataValid(payload, payloadLen)
  			? static_cast<Layer*>(new SctpLayer(payload, payloadLen, this, m_Packet))
@@ -345,7 +357,7 @@ void IPv4Layer::computeCalculateFields()
 	ipHdr->totalLength = htobe16(m_DataLen);
 	ipHdr->headerChecksum = 0;
 
-	if (m_NextLayer != NULL)
+	if (m_NextLayer != nullptr)
 	{
 		switch (m_NextLayer->getProtocol())
 		{
@@ -366,6 +378,10 @@ void IPv4Layer::computeCalculateFields()
 		case IGMPv2:
 		case IGMPv3:
 			ipHdr->protocol = PACKETPP_IPPROTO_IGMP;
+			break;
+		case VRRPv2:
+		case VRRPv3:
+			ipHdr->protocol = PACKETPP_IPPROTO_VRRP;
 			break;
 		default:
 			break;
@@ -477,14 +493,14 @@ IPv4Option IPv4Layer::addOptionAt(const IPv4OptionBuilder& optionBuilder, int of
 	{
 		PCPP_LOG_ERROR("Cannot add option - adding this option will exceed IPv4 total option size which is " << IPV4_MAX_OPT_SIZE);
 		newOption.purgeRecordData();
-		return IPv4Option(NULL);
+		return IPv4Option(nullptr);
 	}
 
 	if (!extendLayer(offset, sizeToExtend))
 	{
 		PCPP_LOG_ERROR("Could not extend IPv4Layer in [" << sizeToExtend << "] bytes");
 		newOption.purgeRecordData();
-		return IPv4Option(NULL);
+		return IPv4Option(nullptr);
 	}
 
 	memcpy(m_Data + offset, newOption.getRecordBasePtr(), newOption.getTotalSize());
@@ -584,3 +600,4 @@ bool IPv4Layer::removeAllOptions()
 }
 
 } // namespace pcpp
+>>>>>>> master

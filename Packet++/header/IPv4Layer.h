@@ -100,6 +100,8 @@ namespace pcpp
 		PACKETPP_IPPROTO_NONE = 59,
 		/** IPv6 Destination options		*/
 		PACKETPP_IPPROTO_DSTOPTS = 60,
+		/** VRRP protocol */
+		PACKETPP_IPPROTO_VRRP = 112,
 		/** SCTP                                */
  		PACKETPP_IPPROTO_SCTP = 132,
 		/** Raw IP packets			*/
@@ -219,7 +221,7 @@ namespace pcpp
 		 * A c'tor for this class that gets a pointer to the option raw data (byte array)
 		 * @param[in] optionRawData A pointer to the IPv4 option raw data
 		 */
-		IPv4Option(uint8_t* optionRawData) : TLVRecord(optionRawData) { }
+		explicit IPv4Option(uint8_t* optionRawData) : TLVRecord(optionRawData) { }
 
 		/**
 		 * A d'tor for this class, currently does nothing
@@ -236,7 +238,7 @@ namespace pcpp
 		{
 			std::vector<IPv4Address> res;
 
-			if (m_Data == NULL)
+			if (m_Data == nullptr)
 				return res;
 
 			size_t dataSize = getDataSize();
@@ -272,7 +274,7 @@ namespace pcpp
 			IPv4TimestampOptionValue res;
 			res.clear();
 
-			if (m_Data == NULL)
+			if (m_Data == nullptr)
 				return res;
 
 			if (getIPv4OptionType() != IPV4OPT_Timestamp)
@@ -313,7 +315,7 @@ namespace pcpp
 		 */
 		IPv4OptionTypes getIPv4OptionType() const
 		{
-			if (m_Data == NULL)
+			if (m_Data == nullptr)
 				return IPV4OPT_Unknown;
 
 			return (IPv4OptionTypes)m_Data->recordType;
@@ -324,7 +326,7 @@ namespace pcpp
 
 		size_t getTotalSize() const
 		{
-			if (m_Data == NULL)
+			if (m_Data == nullptr)
 				return 0;
 
 			if (getIPv4OptionType() == (uint8_t)IPV4OPT_EndOfOptionsList || m_Data->recordType == (uint8_t)IPV4OPT_NOP)
@@ -335,7 +337,7 @@ namespace pcpp
 
 		size_t getDataSize() const
 		{
-			if (m_Data == NULL)
+			if (m_Data == nullptr)
 				return 0;
 
 			if (getIPv4OptionType() == (uint8_t)IPV4OPT_EndOfOptionsList || m_Data->recordType == (uint8_t)IPV4OPT_NOP)
@@ -392,7 +394,7 @@ namespace pcpp
 		 * A c'tor for building IPv4 timestamp option (::IPV4OPT_Timestamp). The IPv4Option object can be later retrieved by calling build()
 		 * @param[in] timestampValue The timestamp value to build the IPv4 option with
 		 */
-		IPv4OptionBuilder(const IPv4TimestampOptionValue& timestampValue);
+		explicit IPv4OptionBuilder(const IPv4TimestampOptionValue& timestampValue);
 
 		/**
 		 * Build the IPv4Option object out of the parameters defined in the c'tor
@@ -642,7 +644,7 @@ namespace pcpp
 		IPv4Option addOptionAt(const IPv4OptionBuilder& optionBuilder, int offset);
 		void adjustOptionsTrailer(size_t totalOptSize);
 		void initLayer();
-		void initLayerInPacket(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet, bool setTotalLenAsDataLen);
+		void initLayerInPacket(bool setTotalLenAsDataLen);
 	};
 
 

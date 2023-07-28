@@ -29,7 +29,7 @@ bool GeneralFilter::matchPacketWithFilter(RawPacket* rawPacket)
 
 BpfFilterWrapper::BpfFilterWrapper()
 {
-	m_Program = NULL;
+	m_Program = nullptr;
 	m_LinkType = LINKTYPE_ETHERNET;
 }
 
@@ -48,19 +48,25 @@ bool BpfFilterWrapper::setFilter(const std::string& filter, LinkLayerType linkTy
 
 	if (filter != m_FilterStr || linkType != m_LinkType)
 	{
+		pcap_t* pcap = pcap_open_dead(linkType, DEFAULT_SNAPLEN);
+		if (pcap == nullptr)
+		{
+			return false;
+		}
+
 		bpf_program* newProg = new bpf_program;
-		if (pcap_compile_nopcap(DEFAULT_SNAPLEN, linkType, newProg, filter.c_str(), 1, 0) < 0)
+		int ret = pcap_compile(pcap, newProg, filter.c_str(), 1, 0);
+		pcap_close(pcap);
+		if (ret < 0)
 		{
 			delete newProg;
 			return false;
 		}
-		else
-		{
-			freeProgram();
-			m_Program = newProg;
-			m_FilterStr = filter;
-			m_LinkType = linkType;
-		}
+
+		freeProgram();
+		m_Program = newProg;
+		m_FilterStr = filter;
+		m_LinkType = linkType;
 	}
 
 	return true;
@@ -68,11 +74,11 @@ bool BpfFilterWrapper::setFilter(const std::string& filter, LinkLayerType linkTy
 
 void BpfFilterWrapper::freeProgram()
 {
-	if (m_Program != NULL)
+	if (m_Program != nullptr)
 	{
 		pcap_freecode(m_Program);
 		delete m_Program;
-		m_Program = NULL;
+		m_Program = nullptr;
 		m_FilterStr.clear();
 	}
 }

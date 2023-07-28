@@ -184,7 +184,7 @@ public:
 		 * @param[in] valueAsHexString Parameter data as hex string. The length field will be set accordingly.
 		 * If this parameter is not a valid hex string the data will remain zeroed and length will be also zero
 		 */
-		optional_parameter(uint8_t typeVal, std::string valueAsHexString);
+		optional_parameter(uint8_t typeVal, const std::string& valueAsHexString);
 	};
 
 	/**
@@ -327,7 +327,7 @@ public:
 		 * @param[in] dataAsHexString Path attribute data as hex string. The path_attribute#length field will be set accordingly.
 		 * If this parameter is not a valid hex string the data will remain zeroed and length will be also set to zero
 		 */
-		path_attribute(uint8_t flagsVal, uint8_t typeVal, std::string dataAsHexString);
+		path_attribute(uint8_t flagsVal, uint8_t typeVal, const std::string& dataAsHexString);
 	};
 
 	/**
@@ -345,7 +345,7 @@ public:
 	 * @param[in] pathAttributes A vector of path attributes data. If left empty (which is the default value) no path attribute information will be written to the message
 	 * @param[in] nlri A vector of network layer reachability data. If left empty (which is the default value) no reachability information will be written to the message
 	 */
-	BgpUpdateMessageLayer(
+	explicit BgpUpdateMessageLayer(
 		const std::vector<prefix_and_ip>& withdrawnRoutes = std::vector<prefix_and_ip>(),
 		const std::vector<path_attribute>& pathAttributes = std::vector<path_attribute>(),
 		const std::vector<prefix_and_ip>& nlri = std::vector<prefix_and_ip>());

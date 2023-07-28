@@ -306,6 +306,7 @@ namespace pcpp
 		 * @param[in] argv The argv param from main()
 		 * @return No return value
 		 */
+		// cppcheck-suppress constParameter
 		static void init(int argc, char* argv[])
 		{
 			if (argc == 0)
@@ -331,7 +332,10 @@ namespace pcpp
 			}
 
 			// remove file extension
-			m_AppName = m_AppName.substr(0, m_AppName.rfind('.'));
+			lastPos = m_AppName.rfind('.');
+			if (lastPos != std::string::npos) {
+				m_AppName.resize(lastPos);
+			}
 		}
 
 		/**

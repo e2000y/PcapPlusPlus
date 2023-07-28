@@ -45,7 +45,7 @@ namespace pcpp
 		 * A c'tor for this class that gets a pointer to the attribute raw data (byte array)
 		 * @param[in] attrRawData A pointer to the attribute raw data
 		 */
-		RadiusAttribute(uint8_t* attrRawData) : TLVRecord(attrRawData) { }
+		explicit RadiusAttribute(uint8_t* attrRawData) : TLVRecord(attrRawData) { }
 
 		/**
 		 * A d'tor for this class, currently does nothing
@@ -56,11 +56,17 @@ namespace pcpp
 
 		size_t getTotalSize() const
 		{
+			if (m_Data == nullptr)
+				return 0;
+
 			return (size_t)m_Data->recordLen;
 		}
 
 		size_t getDataSize() const
 		{
+			if (m_Data == nullptr)
+				return 0;
+
 			return (size_t)m_Data->recordLen - 2*sizeof(uint8_t);
 		}
 	};

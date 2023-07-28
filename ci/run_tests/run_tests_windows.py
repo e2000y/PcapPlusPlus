@@ -16,6 +16,10 @@ def find_interface():
         capture_output=True,
         cwd=TCPREPLAY_PATH,
     )
+    if completed_process.returncode != 0:
+        print('Error executing "tcpreplay.exe --listnics"!')
+        exit(1)
+
     raw_nics_output = completed_process.stdout.decode("utf-8")
     for row in raw_nics_output.split("\n")[2:]:
         columns = row.split("\t")
@@ -49,6 +53,13 @@ def main():
         default=[],
         help="Pcap++ tests to skip",
     )
+    parser.add_argument(
+        "--coverage",
+        "-c",
+        action="store_true",
+        default=False,
+        help="Enable OpenCppCoverage encapsulation to generate coverage report",
+    )
     args = parser.parse_args()
 
     tcpreplay_interface, ip_address = find_interface()
@@ -63,26 +74,74 @@ def main():
         )
         tcpreplay_proc = subprocess.Popen(tcpreplay_cmd, shell=True, cwd=TCPREPLAY_PATH)
 
-        completed_process = subprocess.run(
-            os.path.join("Bin", "Packet++Test"),
-            cwd=os.path.join("Tests", "Packet++Test"),
-            shell=True,
-        )
+        if args.coverage:
+            completed_process = subprocess.run(
+                [
+                    "OpenCppCoverage.exe",
+                    "--verbose",
+                    "--sources",
+                    "Packet++",
+                    "--sources",
+                    "Pcap++",
+                    "--sources",
+                    "Common++",
+                    "--excluded_sources",
+                    "Tests",
+                    "--export_type",
+                    "cobertura:Packet++Coverage.xml",
+                    "--",
+                    os.path.join("Bin", "Packet++Test"),
+                ],
+                cwd=os.path.join("Tests", "Packet++Test"),
+                shell=True,
+            )
+        else:
+            completed_process = subprocess.run(
+                os.path.join("Bin", "Packet++Test"),
+                cwd=os.path.join("Tests", "Packet++Test"),
+                shell=True,
+            )
         if completed_process.returncode != 0:
             exit(completed_process.returncode)
 
         skip_tests = ["TestRemoteCapture"] + args.skip_tests
-        completed_process = subprocess.run(
-            [
-                os.path.join("Bin", "Pcap++Test"),
-                "-i",
-                ip_address,
-                "-x",
-                ";".join(skip_tests),
-            ],
-            cwd=os.path.join("Tests", "Pcap++Test"),
-            shell=True,
-        )
+        if args.coverage:
+            completed_process = subprocess.run(
+                [
+                    "OpenCppCoverage.exe",
+                    "--verbose",
+                    "--sources",
+                    "Packet++",
+                    "--sources",
+                    "Pcap++",
+                    "--sources",
+                    "Common++",
+                    "--excluded_sources",
+                    "Tests",
+                    "--export_type",
+                    "cobertura:Pcap++Coverage.xml",
+                    "--",
+                    os.path.join("Bin", "Pcap++Test"),
+                    "-i",
+                    ip_address,
+                    "-x",
+                    ";".join(skip_tests),
+                ],
+                cwd=os.path.join("Tests", "Pcap++Test"),
+                shell=True,
+            )
+        else:
+            completed_process = subprocess.run(
+                [
+                    os.path.join("Bin", "Pcap++Test"),
+                    "-i",
+                    ip_address,
+                    "-x",
+                    ";".join(skip_tests),
+                ],
+                cwd=os.path.join("Tests", "Pcap++Test"),
+                shell=True,
+            )
         if completed_process.returncode != 0:
             exit(completed_process.returncode)
 

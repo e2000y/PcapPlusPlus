@@ -30,7 +30,7 @@ PTF_TEST_CASE(TestIPFragmentationSanity)
 	PTF_ASSERT_EQUAL(ipReassembly.getMaxCapacity(), PCPP_IP_REASSEMBLY_DEFAULT_MAX_PACKETS_TO_STORE);
 	PTF_ASSERT_EQUAL(ipReassembly.getCurrentCapacity(), 0);
 
-	pcpp::Packet* result = NULL;
+	pcpp::Packet* result = nullptr;
 
 	PTF_PRINT_VERBOSE("basic IPv4 reassembly test - iterating over packet stream");
 	for (size_t i = 0; i < packetStream.size(); i++)
@@ -90,7 +90,7 @@ PTF_TEST_CASE(TestIPFragmentationSanity)
 
 	reader.close();
 
-	result = NULL;
+	result = nullptr;
 
 	PTF_PRINT_VERBOSE("basic IPv6 reassembly test - iterating over packet stream");
 	for (size_t i = 0; i < packet1Frags.size(); i++)
@@ -166,8 +166,6 @@ PTF_TEST_CASE(TestIPFragmentationSanity)
 } // TestIPFragmentationSanity
 
 
-
-
 PTF_TEST_CASE(TestIPFragOutOfOrder)
 {
 	std::vector<pcpp::RawPacket> packetStream;
@@ -176,7 +174,7 @@ PTF_TEST_CASE(TestIPFragOutOfOrder)
 	pcpp::IPReassembly ipReassembly;
 	pcpp::IPReassembly::ReassemblyStatus status;
 
-	pcpp::Packet* result = NULL;
+	pcpp::Packet* result = nullptr;
 
 	int bufferLength = 0;
 	uint8_t* buffer = readFileIntoBuffer("PcapExamples/frag_http_req_reassembled.txt", bufferLength);
@@ -222,7 +220,7 @@ PTF_TEST_CASE(TestIPFragOutOfOrder)
 	PTF_ASSERT_BUF_COMPARE(result->getRawPacket()->getRawData(), buffer, bufferLength);
 
 	delete result;
-	result = NULL;
+	result = nullptr;
 
 	packetStream.clear();
 
@@ -271,7 +269,7 @@ PTF_TEST_CASE(TestIPFragOutOfOrder)
 	PTF_ASSERT_BUF_COMPARE(result->getRawPacket()->getRawData(), buffer, bufferLength);
 
 	delete result;
-	result = NULL;
+	result = nullptr;
 
 	packetStream.clear();
 
@@ -317,7 +315,7 @@ PTF_TEST_CASE(TestIPFragOutOfOrder)
 	PTF_ASSERT_BUF_COMPARE(result->getRawPacket()->getRawData(), buffer, bufferLength);
 
 	delete result;
-	result = NULL;
+	result = nullptr;
 
 	packetStream.clear();
 
@@ -348,7 +346,7 @@ PTF_TEST_CASE(TestIPFragOutOfOrder)
 		{
 			PTF_ASSERT_EQUAL(status, pcpp::IPReassembly::FIRST_FRAGMENT, enum);
 		}
-		else if (i > 1 && i < (packetStream.size()-1))
+		else if (i < (packetStream.size()-1))
 		{
 			PTF_ASSERT_NULL(result);
 			PTF_ASSERT_EQUAL(status, pcpp::IPReassembly::FRAGMENT, enum);
@@ -365,7 +363,7 @@ PTF_TEST_CASE(TestIPFragOutOfOrder)
 	PTF_ASSERT_BUF_COMPARE(result->getRawPacket()->getRawData(), buffer, bufferLength);
 
 	delete result;
-	result = NULL;
+	result = nullptr;
 
 	packetStream.clear();
 
@@ -425,7 +423,7 @@ PTF_TEST_CASE(TestIPFragOutOfOrder)
 
 	reader.close();
 
-	result = NULL;
+	result = nullptr;
 
 	result = ipReassembly.processPacket(packet1Frags.at(2), status);
 	PTF_ASSERT_NULL(result);
@@ -461,8 +459,6 @@ PTF_TEST_CASE(TestIPFragOutOfOrder)
 
 	delete [] buffer2;
 } // TestIPFragOutOfOrder
-
-
 
 
 PTF_TEST_CASE(TestIPFragPartialData)
@@ -529,8 +525,6 @@ PTF_TEST_CASE(TestIPFragPartialData)
 	delete partialPacket;
 	delete [] buffer;
 } // TestIPFragPartialData
-
-
 
 
 PTF_TEST_CASE(TestIPFragMultipleFrags)
@@ -859,14 +853,12 @@ PTF_TEST_CASE(TestIPFragMultipleFrags)
 	delete ip6Packet3;
 	delete ip6Packet4;
 
-	delete buffer1;
-	delete buffer4;
-	delete buffer6;
-	delete buffer61;
-	delete buffer62;
+	delete [] buffer1;
+	delete [] buffer4;
+	delete [] buffer6;
+	delete [] buffer61;
+	delete [] buffer62;
 } // TestIPFragMultipleFrags
-
-
 
 
 PTF_TEST_CASE(TestIPFragMapOverflow)
@@ -938,8 +930,8 @@ PTF_TEST_CASE(TestIPFragMapOverflow)
 
 	PTF_ASSERT_EQUAL(packetsRemovedFromIPReassemblyEngine.size(), 5);
 
-	pcpp::IPReassembly::IPv4PacketKey* ip4Key = NULL;
-	pcpp::IPReassembly::IPv6PacketKey* ip6Key = NULL;
+	pcpp::IPReassembly::IPv4PacketKey* ip4Key = nullptr;
+	pcpp::IPReassembly::IPv6PacketKey* ip6Key = nullptr;
 
 	// 1st packet removed should be ip6Packet1Frags
 	ip6Key = dynamic_cast<pcpp::IPReassembly::IPv6PacketKey*>(packetsRemovedFromIPReassemblyEngine.at(0));
@@ -976,8 +968,6 @@ PTF_TEST_CASE(TestIPFragMapOverflow)
 	PTF_ASSERT_EQUAL(ip4Key->getSrcIP(), pcpp::IPv4Address(std::string("10.118.213.212")));
 	PTF_ASSERT_EQUAL(ip4Key->getDstIP(), pcpp::IPv4Address(std::string("10.118.213.211")));
 } // TestIPFragMapOverflow
-
-
 
 
 PTF_TEST_CASE(TestIPFragRemove)
@@ -1082,3 +1072,36 @@ PTF_TEST_CASE(TestIPFragRemove)
 	ipReassembly.processPacket(ip4Packet8Frags.at(0), status);
 	PTF_ASSERT_EQUAL(ipReassembly.getCurrentCapacity(), 6);
 } // TestIPFragRemove
+
+
+PTF_TEST_CASE(TestIPFragWithPadding)
+{
+	std::vector<pcpp::RawPacket> packetStream;
+	std::string errMsg;
+
+	PTF_ASSERT_TRUE(readPcapIntoPacketVec("PcapExamples/frag_with_padding.pcap", packetStream, errMsg));
+
+	pcpp::IPReassembly ipReassembly;
+	pcpp::IPReassembly::ReassemblyStatus status;
+
+	pcpp::Packet* result = nullptr;
+
+	for (auto rawPacket : packetStream)
+	{
+		pcpp::Packet packet(&rawPacket);
+		result = ipReassembly.processPacket(&packet, status);
+	}
+
+	PTF_ASSERT_NOT_NULL(result);
+	PTF_ASSERT_EQUAL(status, pcpp::IPReassembly::REASSEMBLED, enum);
+
+	int bufferLength = 0;
+	uint8_t* buffer = readFileIntoBuffer("PcapExamples/frag_with_padding_defragmented.dat", bufferLength);
+	PTF_ASSERT_NOT_NULL(buffer);
+
+	PTF_ASSERT_EQUAL(bufferLength, result->getRawPacket()->getRawDataLen());
+	PTF_ASSERT_BUF_COMPARE(result->getRawPacket()->getRawData(), buffer, bufferLength);
+
+	delete result;
+	delete [] buffer;
+} // TestIPFragWithPadding

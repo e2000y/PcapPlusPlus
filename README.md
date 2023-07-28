@@ -1,14 +1,16 @@
+
 <div align="center">
 
 [![PcapPlusPlus Logo](https://pcapplusplus.github.io/img/logo/logo_color.png)](https://pcapplusplus.github.io)
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/seladb/PcapPlusPlus/Build%20and%20test?label=Actions&logo=github&style=flat)](https://github.com/seladb/PcapPlusPlus/actions?query=workflow%3A%22Build+and+test%22)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/seladb/PcapPlusPlus/build_and_test.yml?branch=master&label=Actions&logo=github&style=flat)](https://github.com/seladb/PcapPlusPlus/actions?query=workflow%3A%22Build+and+test%22)
 [![Cirrus CI - Base Branch Build Status](https://img.shields.io/cirrus/github/seladb/PcapPlusPlus?label=Cirrus%20CI&logo=cirrusci&style=flat)](https://cirrus-ci.com/github/seladb/PcapPlusPlus)
 [![AppVeyor](https://img.shields.io/appveyor/build/seladb/PcapPlusPlus/master?label=AppVeyor&logo=appveyor&logoColor=white&style=flat)](https://ci.appveyor.com/project/seladb/pcapplusplus/branch/master)
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/seladb/PcapPlusPlus/CodeQL?label=CodeQL&logo=github&style=flat)](https://github.com/seladb/PcapPlusPlus/actions?query=workflow%3A%22CodeQL%22)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/seladb/PcapPlusPlus/codeql.yml?branch=master&label=CodeQL&logo=github&style=flat)](https://github.com/seladb/PcapPlusPlus/actions?query=workflow%3A%22CodeQL%22)
+[![Codecov](https://img.shields.io/codecov/c/github/seladb/PcapPlusPlus?logo=codecov&logoColor=white)](https://app.codecov.io/github/seladb/PcapPlusPlus)
 [![GitHub contributors](https://img.shields.io/github/contributors/seladb/PcapPlusPlus?style=flat&label=Contributors&logo=github)](https://github.com/seladb/PcapPlusPlus/graphs/contributors)
 <br>
-[![Twitter Follow](https://img.shields.io/twitter/follow/seladb?label=Follow%20PcapPlusPlus&style=social)](https://twitter.com/intent/follow?screen_name=seladb)
+[![Twitter Follow](https://img.shields.io/badge/follow-%40seladb-1DA1F2?logo=twitter&style=social)](https://twitter.com/intent/follow?screen_name=seladb)
 [![GitHub Repo stars](https://img.shields.io/github/stars/seladb/PcapPlusPlus?style=social)]()
 
 </div>
@@ -47,7 +49,7 @@ PcapPlusPlus enables decoding and forging capabilities for a large variety of ne
 
 You can choose between downloading from GitHub release page, use a package manager or build PcapPlusPlus yourself. For more details please visit the [Download](https://pcapplusplus.github.io/docs/install) page in PcapPlusPlus web-site.
 
-[![GitHub all releases](https://img.shields.io/github/downloads/seladb/PcapPlusPlus/total?style=flat&label=Downloads&logo=github)]()
+[![GitHub all releases](https://img.shields.io/github/downloads/seladb/PcapPlusPlus/total?style=flat&label=Downloads&logo=github)](https://tooomm.github.io/github-release-stats/?username=seladb&repository=PcapPlusPlus)
 
 ### GitHub Release Page
 
@@ -206,54 +208,58 @@ PcapPlusPlus currently supports parsing, editing and creation of packets of the 
 5. Packet trailer (a.k.a footer or padding)
 6. PPPoE
 7. SLL (Linux cooked capture)
-8. STP - parsing only (no editing capabilities)
+8. STP
 9. VLAN
 10. VXLAN
 11. Wake on LAN (WoL)
+12. NFLOG (Linux Netfilter NFLOG) - parsing only (no editing capabilities)
 
 ### Network Layer (L3)
 
-12. ARP
-13. GRE
-14. ICMP
-15. ICMPv6
-16. IGMP (IGMPv1, IGMPv2 and IGMPv3 are supported)
-17. IPv4
-18. IPv6
-19. MPLS
-20. NDP
-21. Raw IP (IPv4 & IPv6)
+13. ARP
+14. GRE
+15. ICMP
+16. ICMPv6
+17. IGMP (IGMPv1, IGMPv2 and IGMPv3 are supported)
+18. IPv4
+19. IPv6
+20. MPLS
+21. NDP
+22. Raw IP (IPv4 & IPv6)
+23. VRRP (IPv4 & IPv6)
 
 ### Transport Layer (L4)
 
-22. GTP (v1)
-23. IPSec AH & ESP - parsing only (no editing capabilities)
-24. TCP
-25. UDP
+24. COTP
+25. GTP (v1)
+26. IPSec AH & ESP - parsing only (no editing capabilities)
+27. TCP
+28. TPKT
+29. UDP
 
 ### Session Layer (L5)
 
-26. SDP
-27. SIP
+30. SDP
+31. SIP
 
 ### Presentation Layer (L6)
 
-28. SSL/TLS - parsing only (no editing capabilities)
+32. SSL/TLS - parsing only (no editing capabilities)
 
 ### Application Layer (L7)
 
-29. BGP (v4)
-30. DHCP
-31. DHCPv6
-32. DNS
-33. FTP
-34. HTTP headers (request & response)
-35. NTP (v3, v4)
-36. Radius
-37. SOME/IP
-38. SSH - parsing only (no editing capabilities)
-39. Telnet - parsing only (no editing capabilities)
-40. Generic payload
+33.  BGP (v4)
+34. DHCP
+35. DHCPv6
+36. DNS
+37. FTP
+38. HTTP headers (request & response)
+39. NTP (v3, v4)
+40. Radius
+41. SOME/IP
+42. SSH - parsing only (no editing capabilities)
+43. Telnet - parsing only (no editing capabilities)
+44. Generic payload
 
 ## DPDK And PF_RING Support
 
