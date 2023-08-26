@@ -1307,4 +1307,3 @@ namespace pcpp
 
 } // namespace pcpp
 
-#endif /* PACKETPP_SCTP_LAYER */
