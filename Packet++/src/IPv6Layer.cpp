@@ -315,6 +315,9 @@ void IPv6Layer::computeCalculateFields()
 		case VRRPv3:
 			nextHeader = PACKETPP_IPPROTO_VRRP;
 			break;
+		case SCTP:
+			nextHeader = PACKETPP_IPPROTO_SCTP;
+			break;
 		default:
 			break;
 		}
