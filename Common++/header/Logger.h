@@ -111,6 +111,7 @@ namespace pcpp
 		PcapLogModuleXdpDevice, ///< XdpDevice module (Pcap++)
 		NetworkUtils, ///< NetworkUtils module (Pcap++)
         PacketLogModuleSctpLayer,
+        JavaCPPLogModulePCAPFILEIPv4, /// JavaCPP
 		NumOfLogModules
 	};
 

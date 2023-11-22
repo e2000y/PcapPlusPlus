@@ -20,23 +20,28 @@ namespace pcpp
 	 */
 	class PcapFileInIpV4Out
 	{
-        private:
-		IFileReaderDevice *fileDevice = NULL;
+    private:
+		IFileReaderDevice *fileDevice;
 		IPReassembly  reassembly;
 
-		void stop();
-
 	public:
-		PcapFileInIpV4Out(const std::string& fileName, const bool isNg, const std::string& bpfFilter, size_t maxIPReassembly);
+		PcapFileInIpV4Out(const std::string& fileName, const bool isNg, size_t maxIPReassembly);
 
-		virtual ~PcapFileInIpV4Out() { stop(); }
+		~PcapFileInIpV4Out();
+
+        /**
+         * prepare starting the file reading
+         * @return true if file can be opened for reading
+         * @param[in] bpfFilter the BPF filter
+         */
+        bool start(const std::string& bpfFilter);
 
 		/**
-                 * Read the next IPv4 packet from the file.
-                 * @return the reference to IPv4Layer or NULL if the file cannot be read anymore
-                 * or if reached end-of-file
-                 */
-                IPv4Layer*  getNextPacket();
+         * Read the next IPv4 packet from the file.
+         * @return the reference to IPv4Layer or NULL if the file cannot be read anymore
+         * or if reached end-of-file
+         */
+        IPv4Layer* getNextPacket();
 	};
 }
 
