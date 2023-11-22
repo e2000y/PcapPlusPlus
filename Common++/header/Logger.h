@@ -82,6 +82,7 @@ namespace pcpp
 		PcapLogModuleDpdkDevice, ///< DpdkDevice module (Pcap++)
 		PcapLogModuleKniDevice, ///< KniDevice module (Pcap++)
 		NetworkUtils, ///< NetworkUtils module (Pcap++)
+        JavaCPPLogModulePCAPFILEIPv4, /// JavaCPP
 		NumOfLogModules
 	};
 
