@@ -10,69 +10,66 @@
 namespace pcpp
 {
 
-PcapFileInIpV4Out::PcapFileInIpV4Out(const std::string& fileName, const bool isNg, const std::string& bpfFilter, size_t maxIPReassembly) :
+PcapFileInIpV4Out::PcapFileInIpV4Out(const std::string& fileName, const bool isNg, size_t maxIPReassembly) :
 	reassembly(NULL, NULL, maxIPReassembly)
 {
 	if (isNg)
-	{
-		PcapFileReaderDevice device(fileName);
-
-		fileDevice = &device;
-	}
+		fileDevice = new PcapNgFileReaderDevice(fileName);
 	else
-	{
-		PcapNgFileReaderDevice device(fileName);
-
-		fileDevice = &device;
-	}
-
-	if (bpfFilter.empty())
-	{
-		fileDevice->clearFilter();
-	}
-	else
-	{
-		fileDevice->setFilter(bpfFilter);
-	}
-
-	if (!fileDevice->open())
-		PCPP_LOG_ERROR("Cannot open PCAP / PCAP-NG file '" << fileName << "'");
+		fileDevice = new PcapFileReaderDevice(fileName);
 }
 
-void PcapFileInIpV4Out::stop()
+PcapFileInIpV4Out::~PcapFileInIpV4Out()
 {
-	if (fileDevice != NULL)
-		fileDevice->close();
+    if (fileDevice != NULL)
+    {
+        fileDevice->close();
 
-	fileDevice = NULL;
+        delete fileDevice;
+
+        fileDevice = NULL;
+    }
 }
 
+bool PcapFileInIpV4Out::start(const std::string& bpfFilter)
+{
+	if (!fileDevice->open())
+    {
+		PCPP_LOG_ERROR("Cannot open PCAP / PCAP-NG file");
+
+        return false;
+    }
+    else
+    {
+	    if (!bpfFilter.empty())
+	    	fileDevice->setFilter(bpfFilter);
+
+        return true;
+    }
+}
 
 IPv4Layer* PcapFileInIpV4Out::getNextPacket()
 {
 	if (fileDevice->isOpened())
 	{
-		RawPacketVector vec;
 		IPv4Layer *ipLayer = NULL;
 		bool cont = true;
 
 		while ((ipLayer == NULL) && cont)
 		{
-			vec.clear();
+            RawPacket* newPacket = new RawPacket();
 
-			fileDevice->getNextPackets(vec, 1);
-
-			if (vec.size() >= 1)
-			{
-				RawPacket *rp = vec.at(0);
-
-				ipLayer = getIPv4Layer(rp, &reassembly);
-			}
-			else
-			{
-				//  cannot read
+            if (fileDevice->getNextPacket(*newPacket))
+            {
+				ipLayer = getIPv4Layer(newPacket, &reassembly);
+            }
+            else
+            {
+				//  cannot read anymore
 				cont = false;
-			}
+
+                PCPP_LOG_ERROR("NO more records can be read");
+            }
 		}
 
 		return ipLayer;
