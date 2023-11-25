@@ -4,6 +4,8 @@
 /// @file
 
 #include <string.h>
+#include <time.h>
+#include <thread>
 #include "PcapFileDevice.h"
 #include "IPv4Layer.h"
 #include "IPReassembly.h"
@@ -21,8 +23,8 @@ namespace pcpp
 	class PcapFileInIpV4Out
 	{
     private:
-		IFileReaderDevice *fileDevice;
-		IPReassembly  reassembly;
+		IFileReaderDevice* fileDevice;
+		IPReassembly reassembly;
 
 	public:
 		PcapFileInIpV4Out(const std::string& fileName, const bool isNg, size_t maxIPReassembly);
@@ -30,18 +32,12 @@ namespace pcpp
 		~PcapFileInIpV4Out();
 
         /**
-         * prepare starting the file reading
-         * @return true if file can be opened for reading
+         * start the file reading with BPF filter and callback with new thread
          * @param[in] bpfFilter the BPF filter
+         * @param[in] callback the callback function that take in flag, time and IPv4Layer as parameter
+         * @return nothing
          */
-        bool start(const std::string& bpfFilter);
-
-		/**
-         * Read the next IPv4 packet from the file.
-         * @return the reference to IPv4Layer or NULL if the file cannot be read anymore
-         * or if reached end-of-file
-         */
-        IPv4Layer* getNextPacket();
+        void startProcess(const std::string& bpfFilter, void (*callback)(bool isEnd, long long time, IPv4Layer* layer));
 	};
 }
 
