@@ -8,6 +8,6 @@
 #include "ProtocolType.h"
 #include "IPReassembly.h"
 
-pcpp::IPv4Layer* getIPv4Layer(pcpp::RawPacket *rp, pcpp::IPReassembly *reassembly);
+pcpp::Packet* getIPv4Layer(pcpp::RawPacket *rp, pcpp::IPReassembly *reassembly);
 
 #endif // PCAPPP_JAVACC_UTIL
