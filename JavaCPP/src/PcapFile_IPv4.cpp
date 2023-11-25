@@ -10,6 +10,38 @@
 namespace pcpp
 {
 
+void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, void (*callback)(bool isEnd, long long time, IPv4Layer* layer))
+{
+    RawPacket rawPacket = RawPacket();
+
+    while (fileDevice->getNextPacket(rawPacket))
+    {
+        Packet* pkt = getIPv4Layer(&rawPacket, &reassembly);
+
+        if (pkt != NULL)
+        {
+            IPv4Layer* ipLayer = pkt->getLayerOfType<pcpp::IPv4Layer>(true);
+
+            if (ipLayer != NULL)
+            {
+                timespec t = rawPacket.getPacketTimeStamp();
+
+                long long time = (t.tv_sec * 1000L) + (t.tv_nsec / 1000000L);
+
+                callback(false, time, ipLayer);
+            }
+
+            delete pkt;
+        }
+
+        rawPacket.clear();
+    }
+
+    PCPP_LOG_ERROR("PCAP / PCAP-NG end of file reached");
+
+    callback(true, 0L, NULL);
+}
+
 PcapFileInIpV4Out::PcapFileInIpV4Out(const std::string& fileName, const bool isNg, size_t maxIPReassembly) :
 	reassembly(NULL, NULL, maxIPReassembly)
 {
@@ -31,56 +63,19 @@ PcapFileInIpV4Out::~PcapFileInIpV4Out()
     }
 }
 
-bool PcapFileInIpV4Out::start(const std::string& bpfFilter)
+void PcapFileInIpV4Out::startProcess(const std::string& bpfFilter, void (*callback)(bool isEnd, long long time, IPv4Layer* layer))
 {
-	if (!fileDevice->open())
-    {
-		PCPP_LOG_ERROR("Cannot open PCAP / PCAP-NG file");
-
-        return false;
-    }
-    else
+	if (fileDevice->open())
     {
 	    if (!bpfFilter.empty())
 	    	fileDevice->setFilter(bpfFilter);
 
-        return true;
+        std::thread(&processFile, fileDevice, reassembly, callback).detach();
     }
-}
-
-IPv4Layer* PcapFileInIpV4Out::getNextPacket()
-{
-	if (fileDevice->isOpened())
-	{
-		IPv4Layer *ipLayer = NULL;
-		bool cont = true;
-
-		while ((ipLayer == NULL) && cont)
-		{
-            RawPacket* newPacket = new RawPacket();
-
-            if (fileDevice->getNextPacket(*newPacket))
-            {
-				ipLayer = getIPv4Layer(newPacket, &reassembly);
-            }
-            else
-            {
-				//  cannot read anymore
-				cont = false;
-
-                PCPP_LOG_ERROR("NO more records can be read");
-            }
-		}
-
-		return ipLayer;
-	}
-	else 
-	{
-		PCPP_LOG_ERROR("PCAP / PCAP-NG file not opened");
-
-		return NULL;
-	}
-
+    else
+    {
+		PCPP_LOG_ERROR("Cannot open PCAP / PCAP-NG file");
+    }
 }
 
 } // namespace pcpp
