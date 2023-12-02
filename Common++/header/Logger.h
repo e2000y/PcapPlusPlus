@@ -40,6 +40,10 @@
 		PCPP_LOG(pcpp::Logger::Error, message);                                                                        \
 	} while (0)
 
+#define PCPP_LOG_INFO(message) do \
+	{ \
+		PCPP_LOG(pcpp::Logger::Info, message); \
+	} while (0)
 /// @file
 
 /**
@@ -299,4 +303,9 @@ namespace pcpp
 		static void defaultLogPrinter(LogLevel logLevel, const std::string& logMessage, const std::string& file,
 		                              const std::string& method, const int line);
 	};
+<<<<<<< HEAD
 }  // namespace pcpp
+=======
+
+} // namespace pcpp
+>>>>>>> a15e35ba (include the DPDK implementation for IPv4;)
