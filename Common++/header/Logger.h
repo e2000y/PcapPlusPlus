@@ -37,6 +37,10 @@
 		PCPP_LOG(pcpp::Logger::Error, message); \
 	} while (0)
 
+#define PCPP_LOG_INFO(message) do \
+	{ \
+		PCPP_LOG(pcpp::Logger::Info, message); \
+	} while (0)
 /// @file
 
 /**
@@ -111,7 +115,8 @@ namespace pcpp
 		PcapLogModuleXdpDevice, ///< XdpDevice module (Pcap++)
 		NetworkUtils, ///< NetworkUtils module (Pcap++)
         PacketLogModuleSctpLayer,
-        JavaCPPLogModulePCAPFILEIPv4, /// JavaCPP
+        JavaCPPLogModulePCAPFILEIPv4, /// JavaCPP - PCAP File IPV4
+        JavaCPPLogModuleDPDKIPv4, /// JavaCPP - DPDK IPV4
 		NumOfLogModules
 	};
 
@@ -259,4 +264,5 @@ namespace pcpp
 
 		static void defaultLogPrinter(LogLevel logLevel, const std::string& logMessage, const std::string& file, const std::string& method, const int line);
 	};
+
 } // namespace pcpp
