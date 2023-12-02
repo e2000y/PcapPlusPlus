@@ -1,5 +1,6 @@
 #define LOG_MODULE JavaCPPLogModulePCAPFILEIPv4
 
+#include <time.h>
 #include "Logger.h"
 #include "RawPacket.h"
 #include "Packet.h"
@@ -20,7 +21,7 @@ void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, void (*
 
         if (pkt != NULL)
         {
-            IPv4Layer* ipLayer = pkt->getLayerOfType<pcpp::IPv4Layer>(true);
+            IPv4Layer* ipLayer = pkt->getLayerOfType<IPv4Layer>(true);
 
             if (ipLayer != NULL)
             {
@@ -37,40 +38,40 @@ void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, void (*
         rawPacket.clear();
     }
 
-    PCPP_LOG_ERROR("PCAP / PCAP-NG end of file reached");
+    PCPP_LOG_INFO("PCAP / PCAP-NG end of file reached");
 
     callback(true, 0L, NULL);
 }
 
 PcapFileInIpV4Out::PcapFileInIpV4Out(const std::string& fileName, const bool isNg, size_t maxIPReassembly) :
-	reassembly(NULL, NULL, maxIPReassembly)
+	m_reassembly(NULL, NULL, maxIPReassembly)
 {
 	if (isNg)
-		fileDevice = new PcapNgFileReaderDevice(fileName);
+		m_fileDevice = new PcapNgFileReaderDevice(fileName);
 	else
-		fileDevice = new PcapFileReaderDevice(fileName);
+		m_fileDevice = new PcapFileReaderDevice(fileName);
 }
 
 PcapFileInIpV4Out::~PcapFileInIpV4Out()
 {
-    if (fileDevice != NULL)
+    if (m_fileDevice != NULL)
     {
-        fileDevice->close();
+        m_fileDevice->close();
 
-        delete fileDevice;
+        delete m_fileDevice;
 
-        fileDevice = NULL;
+        m_fileDevice = NULL;
     }
 }
 
 void PcapFileInIpV4Out::startProcess(const std::string& bpfFilter, void (*callback)(bool isEnd, long long time, IPv4Layer* layer))
 {
-	if (fileDevice->open())
+	if (m_fileDevice->open())
     {
 	    if (!bpfFilter.empty())
-	    	fileDevice->setFilter(bpfFilter);
+	    	m_fileDevice->setFilter(bpfFilter);
 
-        std::thread(&processFile, fileDevice, reassembly, callback).detach();
+        std::thread(&processFile, m_fileDevice, m_reassembly, callback).detach();
     }
     else
     {

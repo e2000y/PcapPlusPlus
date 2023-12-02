@@ -307,5 +307,12 @@ namespace pcpp
 }  // namespace pcpp
 =======
 
+#define PCPP_LOG_INFO(message) do \
+	{ \
+        std::ostringstream* sstream = pcpp::Logger::getInstance().internalCreateLogStream(); \
+  		(*sstream) << message; \
+		pcpp::Logger::getInstance().internalPrintLogMessage(sstream, pcpp::Logger::Info, __FILE__, __FUNCTION__, __LINE__); \
+	} while (0)
+
 } // namespace pcpp
 >>>>>>> a15e35ba (include the DPDK implementation for IPv4;)
