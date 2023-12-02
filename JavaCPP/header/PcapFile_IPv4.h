@@ -4,7 +4,6 @@
 /// @file
 
 #include <string.h>
-#include <time.h>
 #include <thread>
 #include "PcapFileDevice.h"
 #include "IPv4Layer.h"
@@ -23,8 +22,8 @@ namespace pcpp
 	class PcapFileInIpV4Out
 	{
     private:
-		IFileReaderDevice* fileDevice;
-		IPReassembly reassembly;
+		IFileReaderDevice* m_fileDevice;
+		IPReassembly m_reassembly;
 
 	public:
 		PcapFileInIpV4Out(const std::string& fileName, const bool isNg, size_t maxIPReassembly);

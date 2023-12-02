@@ -82,7 +82,8 @@ namespace pcpp
 		PcapLogModuleDpdkDevice, ///< DpdkDevice module (Pcap++)
 		PcapLogModuleKniDevice, ///< KniDevice module (Pcap++)
 		NetworkUtils, ///< NetworkUtils module (Pcap++)
-        JavaCPPLogModulePCAPFILEIPv4, /// JavaCPP
+        JavaCPPLogModulePCAPFILEIPv4, /// JavaCPP - PCAP File IPV4
+        JavaCPPLogModuleDPDKIPv4, /// JavaCPP - DPDK IPV4
 		NumOfLogModules
 	};
 
@@ -246,6 +247,13 @@ namespace pcpp
         std::ostringstream* sstream = pcpp::Logger::getInstance().internalCreateLogStream(); \
   		(*sstream) << message; \
 		pcpp::Logger::getInstance().internalPrintLogMessage(sstream, pcpp::Logger::Error, __FILE__, __FUNCTION__, __LINE__); \
+	} while (0)
+
+#define PCPP_LOG_INFO(message) do \
+	{ \
+        std::ostringstream* sstream = pcpp::Logger::getInstance().internalCreateLogStream(); \
+  		(*sstream) << message; \
+		pcpp::Logger::getInstance().internalPrintLogMessage(sstream, pcpp::Logger::Info, __FILE__, __FUNCTION__, __LINE__); \
 	} while (0)
 
 } // namespace pcpp

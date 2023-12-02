@@ -1,10 +1,12 @@
 add_library(
   JavaCPP SHARED
   src/PcapFile_IPv4.cpp
+  src/Dpdk_IPv4.cpp
   src/util.cpp)
 
 set(public_headers
-    header/PcapFile_IPv4.h)
+    header/PcapFile_IPv4.h
+    header/Dpdk_IPv4.h)
 
 # Set the public header that will be installed
 set_property(TARGET JavaCPP PROPERTY PUBLIC_HEADER ${public_headers})
