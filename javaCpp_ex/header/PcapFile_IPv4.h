@@ -1,5 +1,4 @@
-#ifndef PCAPPP_PCAPFILE_IPv4
-#define PCAPPP_PCAPFILE_IPv4
+#pragma once
 
 /// @file
 
@@ -48,4 +47,3 @@ namespace pcpp
 	};
 }
 
-#endif // PCAPPP_PCAPFILE_IPv4

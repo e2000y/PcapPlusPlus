@@ -1,5 +1,4 @@
-#ifndef PCAPPP_DPDK_IPv4
-#define PCAPPP_DPDK_IPv4
+#pragma once
 
 /// @file
 
@@ -83,5 +82,3 @@ namespace pcpp
         Dpdk_Dev_Rx_Stats* getDeviceStats(const std::string& dev);
 	};
 }
-
-#endif // PCAPPP_DPDK_IPv4
