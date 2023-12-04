@@ -28,7 +28,16 @@ namespace pcpp
 		IPReassembly m_reassembly;
 
 	public:
-		Dpdk_Ipv4(const std::string& app, const std::vector<std::string>& args, size_t maxIPReassembly, uint8_t masterCore, CoreMask coreMask, uint32_t mBufPoolSizePerDevice, bool debug);
+        /**
+         * @param[in] app application name
+         * @param[in] args DPDK initialization parameters
+         * @param[in] maxIPReassembly max pending IP re-assembly segments
+         * @param[in] masterCore the core used by DPDK master thread
+         * @param[in] coreMask the core used by captured thread
+         * @param[in] mBufPoolSizePerDevice mBuf pool size for each DPDK device
+         * @param[in] debug turn on debug log
+         */
+		Dpdk_Ipv4(const std::string& app, const std::vector<std::string>& args, const size_t maxIPReassembly, const uint8_t masterCore, const CoreMask coreMask, const uint32_t mBufPoolSizePerDevice, const bool debug);
 
 		~Dpdk_Ipv4();
 
@@ -38,7 +47,7 @@ namespace pcpp
          * @param[in] callback the callback function that take in flag, time and IPv4Layer as parameter
          * @return true if can start the processing
          */
-        bool startProcess(const std::vector<std::string>& devs, void (*callback)(bool isEnd, long long time, IPv4Layer* layer));
+        bool startProcess(const std::vector<std::string> devs, void (*callback)(bool isEnd, long long time, IPv4Layer* layer));
 
         /**
          * stop the DPDK

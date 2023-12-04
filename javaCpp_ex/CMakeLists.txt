@@ -1,5 +1,5 @@
 add_library(
-  JavaCPP SHARED
+  javaCpp_ex SHARED
   src/PcapFile_IPv4.cpp
   src/Dpdk_IPv4.cpp
   src/util.cpp)
@@ -9,21 +9,21 @@ set(public_headers
     header/Dpdk_IPv4.h)
 
 # Set the public header that will be installed
-set_property(TARGET JavaCPP PROPERTY PUBLIC_HEADER ${public_headers})
+set_property(TARGET javaCpp_ex PROPERTY PUBLIC_HEADER ${public_headers})
 
 target_include_directories(
-  JavaCPP
+  javaCpp_ex
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/header> $<INSTALL_INTERFACE:include/pcapplusplus>)
 
 target_link_libraries(
-  JavaCPP
+  javaCpp_ex
   PUBLIC Common++
          Packet++
          Pcap++)
 
 if(PCAPPP_INSTALL)
   install(
-    TARGETS JavaCPP
+    TARGETS javaCpp_ex
     EXPORT PcapPlusPlusTargets
     ARCHIVE DESTINATION ${PCAPPP_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${PCAPPP_INSTALL_LIBDIR}
@@ -31,6 +31,6 @@ if(PCAPPP_INSTALL)
     RUNTIME DESTINATION ${PCAPPP_INSTALL_BINDIR})
 endif()
 
-set_property(TARGET JavaCPP PROPERTY OUTPUT_NAME "JavaCPP")
-set_property(TARGET JavaCPP PROPERTY VERSION ${PCAPPP_VERSION})
-set_property(TARGET JavaCPP PROPERTY COMPILE_WARNING_AS_ERROR ON)
+set_property(TARGET javaCpp_ex PROPERTY OUTPUT_NAME "javaCpp_ex")
+set_property(TARGET javaCpp_ex PROPERTY VERSION ${PCAPPP_VERSION})
+set_property(TARGET javaCpp_ex PROPERTY COMPILE_WARNING_AS_ERROR ON)

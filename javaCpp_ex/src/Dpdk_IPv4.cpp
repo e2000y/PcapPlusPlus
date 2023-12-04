@@ -1,6 +1,5 @@
 #define LOG_MODULE JavaCPPLogModuleDPDKIPv4
 
-#include <vector>
 #include <time.h>
 #include <stdexcept>
 #include "Logger.h"
@@ -126,7 +125,7 @@ public:
     }
 };
 
-Dpdk_Ipv4::Dpdk_Ipv4(const std::string& app, const std::vector<std::string>& args, size_t maxIPReassembly, uint8_t masterCore, CoreMask coreMask, uint32_t mBufPoolSizePerDevice, bool debug) :
+Dpdk_Ipv4::Dpdk_Ipv4(const std::string& app, const std::vector<std::string>& args, const size_t maxIPReassembly, const uint8_t masterCore, const CoreMask coreMask, const uint32_t mBufPoolSizePerDevice, const bool debug) :
 	m_reassembly(NULL, NULL, maxIPReassembly)
 {
     m_coreMask = coreMask;
@@ -191,11 +190,11 @@ Dpdk_Ipv4::~Dpdk_Ipv4()
     DpdkDeviceList::getInstance().stopDpdkWorkerThreads();
 }
 
-bool Dpdk_Ipv4::startProcess(const std::vector<std::string>& devs, void (*callback)(bool isEnd, long long time, IPv4Layer* layer))
+bool Dpdk_Ipv4::startProcess(const std::vector<std::string> devs, void (*callback)(bool isEnd, long long time, IPv4Layer* layer))
 {
     if (m_coresToUse.size() < devs.size())
     {
-        PCPP_LOG_ERROR("Needed at least " << devs.size() << " cores to process the devices");
+        PCPP_LOG_ERROR("Needed at least " << devs.size() << " cores to process the given devices");
 
         return false;
     }

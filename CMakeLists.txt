@@ -231,7 +231,7 @@ add_subdirectory(3rdParty)
 add_subdirectory(Packet++)
 add_subdirectory(Pcap++)
 add_subdirectory(Common++)
-add_subdirectory(JavaCPP)
+add_subdirectory(javaCpp_ex)
 
 if(PCAPPP_BUILD_EXAMPLES)
   set(PCAPPP_BINARY_EXAMPLES_DIR ${CMAKE_BINARY_DIR}/examples_bin)
