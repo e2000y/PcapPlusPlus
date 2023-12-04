@@ -26,6 +26,11 @@ namespace pcpp
 		IPReassembly m_reassembly;
 
 	public:
+        /*
+         * @param[in] fileName the PCAP / PCAP-NG file
+         * @param[in] isNg true if it is PCAP-NG file
+         * @param[in] maxIPReassembly max pending IP re-assembly segments
+         */
 		PcapFileInIpV4Out(const std::string& fileName, const bool isNg, size_t maxIPReassembly);
 
 		~PcapFileInIpV4Out();
