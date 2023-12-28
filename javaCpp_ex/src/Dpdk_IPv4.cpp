@@ -255,6 +255,13 @@ Dpdk_Ipv4::Dpdk_Ipv4(const std::string& app, const std::vector<std::string>& arg
         PCPP_LOG_INFO("DPDK library inited");
     }
 
+    if ((m_coreMask & DpdkDeviceList::getInstance().getDpdkMasterCore().Mask) != 0)
+    {
+        PCPP_LOG_ERROR("coreMask cannot include master core");
+
+        throw new std::range_error("coreMask cannot include master core");
+    }
+
     const std::vector<DpdkDevice*> devs = DpdkDeviceList::getInstance().getDpdkDeviceList();
 
     for (DpdkDevice* dev : devs)
