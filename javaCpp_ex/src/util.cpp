@@ -21,6 +21,6 @@ pcpp::Packet* getIPv4Layer(pcpp::RawPacket *rp, pcpp::IPReassembly *reassembly)
 		return output;
 	}
 	else
-		return NULL;
+		return nullptr;
 }
 
