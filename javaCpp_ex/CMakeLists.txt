@@ -5,8 +5,14 @@ add_library(
   src/util.cpp)
 
 set(public_headers
-    header/PcapFile_IPv4.h
-    $<$<BOOL:${PCAPPP_USE_DPDK}>:header/Dpdk_IPv4.h>)
+    header/PcapFile_IPv4.h)
+
+if(PCAPPP_USE_DPDK)
+  list(
+    APPEND
+    public_headers
+    header/Dpdk_IPv4.h)
+endif()
 
 # Set the public header that will be installed
 set_property(TARGET javaCpp_ex PROPERTY PUBLIC_HEADER ${public_headers})
