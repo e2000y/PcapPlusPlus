@@ -33,11 +33,11 @@ namespace pcpp
          * @param[in] args DPDK initialization parameters
          * @param[in] maxIPReassembly max pending IP re-assembly segments
          * @param[in] masterCore the core used by DPDK master thread
-         * @param[in] coreMask the core used by captured thread
+         * @param[in] svcCores the core used by DPDK service threads
          * @param[in] mBufPoolSizePerDevice mBuf pool size for each DPDK device
          * @param[in] debug turn on debug log
          */
-		Dpdk_Ipv4(const std::string& app, const std::vector<std::string>& args, const size_t maxIPReassembly, const uint8_t masterCore, const CoreMask coreMask, const uint32_t mBufPoolSizePerDevice, const bool debug);
+		Dpdk_Ipv4(const std::string& app, const std::vector<std::string>& args, const size_t maxIPReassembly, const uint8_t masterCore, const std::vector<int> svcCores, const uint32_t mBufPoolSizePerDevice, const bool debug);
 
 		~Dpdk_Ipv4();
 

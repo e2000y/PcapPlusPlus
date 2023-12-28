@@ -61,6 +61,8 @@ public:
         }
         else
         {
+            PCPP_LOG_INFO("DPDK device " << m_dpdkDev->getDeviceId() << ":" << m_dpdkDev->getDeviceName() << " use core ID " << coreId);
+
             const uint16_t queues = m_dpdkDev->getNumOfOpenedRxQueues();
             MBufRawPacket* packetArr[MAX_RECEIVE_BURST] = {};
 
@@ -125,26 +127,20 @@ public:
     }
 };
 
-Dpdk_Ipv4::Dpdk_Ipv4(const std::string& app, const std::vector<std::string>& args, const size_t maxIPReassembly, const uint8_t masterCore, const CoreMask coreMask, const uint32_t mBufPoolSizePerDevice, const bool debug) :
+Dpdk_Ipv4::Dpdk_Ipv4(const std::string& app, const std::vector<std::string>& args, const size_t maxIPReassembly, const uint8_t masterCore, const std::vector<int> svcCores, const uint32_t mBufPoolSizePerDevice, const bool debug) :
 	m_reassembly(nullptr, nullptr, maxIPReassembly)
 {
-    m_coreMask = coreMask;
+    m_coreMask = createCoreMaskFromCoreIds(svcCores);
+
     m_mBufPoolSizePerDevice = mBufPoolSizePerDevice;
 
-    createCoreVectorFromCoreMask(coreMask, m_coresToUse);
+    createCoreVectorFromCoreMask(m_coreMask, m_coresToUse);
 
-    if (m_coresToUse.size() < 2)
+    if (m_coresToUse.size() < 1)
     {
-        PCPP_LOG_ERROR("Needed minimum of 2 cores");
+        PCPP_LOG_ERROR("Needed minimum of 1 core");
 
-        throw new std::out_of_range("Needed minimum of 2 cores");
-    }
-
-    if ((coreMask & DpdkDeviceList::getInstance().getDpdkMasterCore().Mask) != 0)
-    {
-        PCPP_LOG_ERROR("coreMask cannot include master core");
-
-        throw new std::range_error("coreMask cannot include master core");
+        throw new std::out_of_range("Needed minimum of 1 core");
     }
 
     //  convert string array to **char
@@ -161,11 +157,18 @@ Dpdk_Ipv4::Dpdk_Ipv4(const std::string& app, const std::vector<std::string>& arg
         cstrings.push_back(vstrings.back().data());
     }
 
-    if (!DpdkDeviceList::getInstance().initDpdk(coreMask, mBufPoolSizePerDevice, masterCore, cstrings.size(), cstrings.data(), app))
+    if (!DpdkDeviceList::getInstance().initDpdk(m_coreMask, mBufPoolSizePerDevice, masterCore, cstrings.size(), cstrings.data(), app))
     {
         PCPP_LOG_ERROR("Couldn't initialize DPDK");
 
         throw new std::runtime_error("Couldn't initialize DPDK");
+    }
+
+    if ((m_coreMask & DpdkDeviceList::getInstance().getDpdkMasterCore().Mask) != 0)
+    {
+        PCPP_LOG_ERROR("coreMask cannot include master core");
+
+        throw new std::range_error("coreMask cannot include master core");
     }
 
     const std::vector<DpdkDevice*> devs = DpdkDeviceList::getInstance().getDpdkDeviceList();
