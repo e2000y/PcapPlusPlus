@@ -19,11 +19,11 @@ void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, void (*
     {
         Packet* pkt = getIPv4Layer(&rawPacket, &reassembly);
 
-        if (pkt != NULL)
+        if (pkt != nullptr)
         {
             IPv4Layer* ipLayer = pkt->getLayerOfType<IPv4Layer>(true);
 
-            if (ipLayer != NULL)
+            if (ipLayer != nullptr)
             {
                 timespec t = rawPacket.getPacketTimeStamp();
 
@@ -40,11 +40,11 @@ void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, void (*
 
     PCPP_LOG_INFO("PCAP / PCAP-NG end of file reached");
 
-    callback(true, 0L, NULL);
+    callback(true, 0L, nullptr);
 }
 
 PcapFileInIpV4Out::PcapFileInIpV4Out(const std::string& fileName, const bool isNg, size_t maxIPReassembly) :
-	m_reassembly(NULL, NULL, maxIPReassembly)
+	m_reassembly(nullptr, nullptr, maxIPReassembly)
 {
 	if (isNg)
 		m_fileDevice = new PcapNgFileReaderDevice(fileName);
@@ -54,13 +54,13 @@ PcapFileInIpV4Out::PcapFileInIpV4Out(const std::string& fileName, const bool isN
 
 PcapFileInIpV4Out::~PcapFileInIpV4Out()
 {
-    if (m_fileDevice != NULL)
+    if (m_fileDevice != nullptr)
     {
         m_fileDevice->close();
 
         delete m_fileDevice;
 
-        m_fileDevice = NULL;
+        m_fileDevice = nullptr;
     }
 }
 
