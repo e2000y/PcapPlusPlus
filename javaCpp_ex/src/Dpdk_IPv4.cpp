@@ -53,7 +53,7 @@ public:
 
         bool ret = true;
 
-        if (m_dpdkDev == NULL)
+        if (m_dpdkDev == nullptr)
         {
             PCPP_LOG_ERROR("NO DPDK device assigned to core - " << coreId);
 
@@ -85,11 +85,11 @@ public:
                             //  parse packet
                             Packet* pkt = getIPv4Layer(packetArr[i], m_reassembly);
 
-                            if (pkt != NULL)
+                            if (pkt != nullptr)
                             {
                                 IPv4Layer* ipLayer = pkt->getLayerOfType<pcpp::IPv4Layer>(true);
 
-                                if (ipLayer != NULL)
+                                if (ipLayer != nullptr)
                                 {
                                     timespec t = packetArr[i]->getPacketTimeStamp();
 
@@ -119,14 +119,14 @@ public:
 
         PCPP_LOG_INFO("DPDK device " << m_dpdkDev->getDeviceId() << ":" << m_dpdkDev->getDeviceName() << " processing loop end");
 
-        m_callback(true, 0L, NULL);
+        m_callback(true, 0L, nullptr);
 
         return ret;
     }
 };
 
 Dpdk_Ipv4::Dpdk_Ipv4(const std::string& app, const std::vector<std::string>& args, const size_t maxIPReassembly, const uint8_t masterCore, const CoreMask coreMask, const uint32_t mBufPoolSizePerDevice, const bool debug) :
-	m_reassembly(NULL, NULL, maxIPReassembly)
+	m_reassembly(nullptr, nullptr, maxIPReassembly)
 {
     m_coreMask = coreMask;
     m_mBufPoolSizePerDevice = mBufPoolSizePerDevice;
