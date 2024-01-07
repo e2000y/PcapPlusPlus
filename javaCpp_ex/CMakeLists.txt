@@ -19,13 +19,15 @@ set_property(TARGET javaCpp_ex PROPERTY PUBLIC_HEADER ${public_headers})
 
 target_include_directories(
   javaCpp_ex
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/header> $<INSTALL_INTERFACE:include/pcapplusplus>)
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/header> $<INSTALL_INTERFACE:include/pcapplusplus>
+  PRIVATE ${JNI_INCLUDE_DIRS})
 
 target_link_libraries(
   javaCpp_ex
   PUBLIC Common++
          Packet++
-         Pcap++)
+         Pcap++
+         ${JNI_LIBRARIES})
 
 if(PCAPPP_INSTALL)
   install(
