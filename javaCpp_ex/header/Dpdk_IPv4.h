@@ -5,9 +5,9 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 #include <map>
 #include "DpdkDeviceList.h"
-#include "IPv4Layer.h"
 #include "IPReassembly.h"
 
 /**
@@ -41,6 +41,7 @@ namespace pcpp
         std::vector<SystemCore> m_coresToUse;
 		IPReassembly m_reassembly;
         std::map<std::string, Dpdk_Dev_Rx_Stats*> stats;
+        std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> m_callback;
 
 	public:
         /**
@@ -61,12 +62,10 @@ namespace pcpp
          * @param[in] ptr a pointer to JNI object JavaVM
          * @param[in] devs the PCI address of the devices
          * @param[in] queues the number of RX queues used
-         * @param[in] cbClz the classname of the callback
-         * @param[in] cbMtd the method of the callback class
-         * @param[in] cbSig the signature of the callback method
+         * @param[in] callback the callback function
          * @return true if can start the processing
          */
-        bool startProcess(void* ptr, const std::vector<std::string> devs, const uint16_t queues, const std::string& cbClz, const std::string& cbMtd, const std::string& cbSig);
+        bool startProcess(void* ptr, const std::vector<std::string> devs, const uint16_t queues, std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback);
 
         /**
          * stop the DPDK

@@ -4,9 +4,8 @@
 /// @file
 
 #include <string.h>
-#include <thread>
+#include <functional>
 #include "PcapFileDevice.h"
-#include "IPv4Layer.h"
 #include "IPReassembly.h"
 
 /**
@@ -24,6 +23,7 @@ namespace pcpp
     private:
 		IFileReaderDevice* m_fileDevice;
 		IPReassembly m_reassembly;
+        std::function<void(bool, long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> m_callback;
 
 	public:
         /*
@@ -41,7 +41,7 @@ namespace pcpp
          * @param[in] callback the callback function that take in flag, time and IPv4Layer as parameter
          * @return nothing
          */
-        void startProcess(const std::string& bpfFilter, void (*callback)(bool isEnd, long long time, IPv4Layer* layer));
+        void startProcess(const std::string& bpfFilter, std::function<void(bool, long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback);
 	};
 }
 
