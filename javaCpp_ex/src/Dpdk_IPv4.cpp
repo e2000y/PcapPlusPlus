@@ -28,7 +28,7 @@ private:
     IPReassembly* m_reassembly;
     Dpdk_Dev_Rx_Stats* m_stat;
     uint32_t m_mBufPoolSize;
-    std::function<void(bool, long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> m_callback;
+    std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> m_callback;
     std::string m_cbClz;
     std::string m_cbMtd;
     std::string m_cbSig;
@@ -36,7 +36,7 @@ private:
     uint32_t m_coreId;
     
 public:
-    AppWorkerThread(void* ptr, uint32_t mBufPoolSize, DpdkDevice* dpdkDev, uint16_t queue, IPReassembly* reassembly, Dpdk_Dev_Rx_Stats* stat, std::function<void(bool, long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
+    AppWorkerThread(void* ptr, uint32_t mBufPoolSize, DpdkDevice* dpdkDev, uint16_t queue, IPReassembly* reassembly, Dpdk_Dev_Rx_Stats* stat, std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
     {
         m_jvm = (JavaVM*) ptr;
         m_dpdkDev = dpdkDev;
@@ -241,7 +241,7 @@ Dpdk_Ipv4::~Dpdk_Ipv4()
     DpdkDeviceList::getInstance().stopDpdkWorkerThreads();
 }
 
-bool Dpdk_Ipv4::startProcess(void* ptr, const std::vector<std::string> devs, const uint16_t queues, std::function<void(bool, long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
+bool Dpdk_Ipv4::startProcess(void* ptr, const std::vector<std::string> devs, const uint16_t queues, std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
 {
     if (m_coresToUse.size() < devs.size())
     {
