@@ -1,9 +1,11 @@
 #define LOG_MODULE JavaCPPLogModulePCAPFILEIPv4
 
 #include <time.h>
+#include <thread>
 #include "Logger.h"
 #include "RawPacket.h"
 #include "Packet.h"
+#include "IPv4Layer.h"
 #include "ProtocolType.h"
 #include "PcapFile_IPv4.h"
 #include "util.h"
@@ -11,7 +13,7 @@
 namespace pcpp
 {
 
-void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, void (*callback)(bool isEnd, long long time, IPv4Layer* layer))
+void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, std::function<void(bool, long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
 {
     RawPacket rawPacket = RawPacket();
 
@@ -29,7 +31,7 @@ void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, void (*
 
                 long long time = (t.tv_sec * 1000L) + (t.tv_nsec / 1000000L);
 
-                callback(false, time, ipLayer);
+                callback(false, time, ipLayer->getIPv4Header()->ipSrc, ipLayer->getIPv4Header()->ipDst, ipLayer->getIPv4Header()->protocol, ipLayer->getLayerPayloadSize(), ipLayer->getLayerPayload());
             }
 
             delete pkt;
@@ -40,7 +42,7 @@ void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, void (*
 
     PCPP_LOG_INFO("PCAP / PCAP-NG end of file reached");
 
-    callback(true, 0L, nullptr);
+    callback(true, 0L, 0, 0, 0, 0, nullptr);
 }
 
 PcapFileInIpV4Out::PcapFileInIpV4Out(const std::string& fileName, const bool isNg, size_t maxIPReassembly) :
@@ -64,7 +66,7 @@ PcapFileInIpV4Out::~PcapFileInIpV4Out()
     }
 }
 
-void PcapFileInIpV4Out::startProcess(const std::string& bpfFilter, void (*callback)(bool isEnd, long long time, IPv4Layer* layer))
+void PcapFileInIpV4Out::startProcess(const std::string& bpfFilter, std::function<void(bool, long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
 {
 	if (m_fileDevice->open())
     {
