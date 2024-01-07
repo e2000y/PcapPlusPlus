@@ -40,6 +40,7 @@ namespace pcpp
         std::vector<SystemCore> m_coresToUse;
 		IPReassembly m_reassembly;
         std::map<std::string, Dpdk_Dev_Rx_Stats*> stats;
+        std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> m_callback;
 
         //std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> m_callback;
 
