@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include "DpdkDeviceList.h"
 #include "IPv4Layer.h"
 #include "IPReassembly.h"
@@ -15,6 +16,19 @@
 */
 namespace pcpp
 {
+    class Dpdk_Dev_Rx_Stats
+    {
+    public:
+        long long tv_sec;
+        uint64_t packets;
+        uint64_t bytes;
+        uint64_t packetsPerSec;
+        uint64_t bytesPerSec;
+        uint64_t rxDrop;
+        uint64_t rxErrs;
+        uint64_t rxMbufAllocFail;
+    };
+
 	/**
 	 * @class Dpdk_Ipv4
 	 * A class to use DPDK to get data and produce the IPv4 packets
@@ -26,6 +40,7 @@ namespace pcpp
         uint32_t m_mBufPoolSizePerDevice;
         std::vector<SystemCore> m_coresToUse;
 		IPReassembly m_reassembly;
+        std::map<std::string, Dpdk_Dev_Rx_Stats*> stats;
 
 	public:
         /**
@@ -43,16 +58,27 @@ namespace pcpp
 
         /**
          * start the DPDK with callback with new thread
+         * @param[in] ptr a pointer to JNI object JavaVM
          * @param[in] devs the PCI address of the devices
-         * @param[in] callback the callback function that take in flag, time and IPv4Layer as parameter
+         * @param[in] queues the number of RX queues used
+         * @param[in] cbClz the classname of the callback
+         * @param[in] cbMtd the method of the callback class
+         * @param[in] cbSig the signature of the callback method
          * @return true if can start the processing
          */
-        bool startProcess(const std::vector<std::string> devs, void (*callback)(bool isEnd, long long time, IPv4Layer* layer));
+        bool startProcess(void* ptr, const std::vector<std::string> devs, const uint16_t queues, const std::string& cbClz, const std::string& cbMtd, const std::string& cbSig);
 
         /**
          * stop the DPDK
          */
         void stopProcess();
+
+        /**
+         * get the device stats
+         * @param[in] dev the PCI address of the device
+         * @return the stats
+         */
+        Dpdk_Dev_Rx_Stats* getDeviceStats(const std::string& dev);
 	};
 }
 
