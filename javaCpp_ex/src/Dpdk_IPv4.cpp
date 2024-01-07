@@ -21,6 +21,8 @@ namespace pcpp
 class AppWorkerThread : public DpdkWorkerThread
 {
 private:
+    JavaVM* m_jvm;
+    JNIEnv* m_env;
     DpdkDevice* m_dpdkDev;
     uint16_t m_queue;
     IPReassembly* m_reassembly;
@@ -36,6 +38,7 @@ private:
 public:
     AppWorkerThread(uint32_t mBufPoolSize, DpdkDevice* dpdkDev, uint16_t queue, IPReassembly* reassembly, Dpdk_Dev_Rx_Stats* stat, const void* jvm, const std::string& clz, const std::string& mtd, const std::string& sig)
     {
+        m_jvm = (JavaVM*) ptr;
         m_dpdkDev = dpdkDev;
         m_queue = queue;
         m_stat = stat;
@@ -74,6 +77,12 @@ public:
         if (m_dpdkDev == nullptr)
         {
             PCPP_LOG_ERROR("NO DPDK device assigned to core - " << coreId);
+
+            ret = false;
+        }
+        else if (m_jvm->AttachCurrentThread((void **)&m_env, NULL) < 0)
+        {
+            PCPP_LOG_ERROR("Cannot attach JVM for core - " << coreId);
 
             ret = false;
         }
@@ -181,12 +190,25 @@ public:
                             ret = false;
                         }
                     }
-                    else
+
+                    iter = 0;
+                }
+
+                uint16_t packetsReceived = m_dpdkDev->receivePackets(packetArr, MAX_RECEIVE_BURST, m_queue);
+
+                for (int i = 0; i < packetsReceived; i++)
+                {
+                    //  parse packet
+                    Packet* pkt = getIPv4Layer(packetArr[i], m_reassembly);
+
+                    if (pkt != nullptr)
                     {
                         PCPP_LOG_ERROR("cannot find class " << m_clz);
 
                         ret = false;
                     }
+
+                    packetArr[i]->clear();
                 }
                 else
                 {
@@ -254,12 +276,9 @@ Dpdk_Ipv4::Dpdk_Ipv4(const std::string& app, const std::vector<std::string>& arg
     {
         PCPP_LOG_INFO("DPDK library inited");
     }
-
-    if ((m_coreMask & DpdkDeviceList::getInstance().getDpdkMasterCore().Mask) != 0)
+    else
     {
-        PCPP_LOG_ERROR("coreMask cannot include master core");
-
-        throw new std::range_error("coreMask cannot include master core");
+        PCPP_LOG_INFO("DPDK library inited");
     }
 
     const std::vector<DpdkDevice*> devs = DpdkDeviceList::getInstance().getDpdkDeviceList();

@@ -59,6 +59,7 @@ namespace pcpp
 
         /**
          * start the DPDK with callback with new thread
+         * @param[in] ptr a pointer to JNI object JavaVM
          * @param[in] devs the PCI address of the devices
          * @param[in] queues the number of RX queues used
          * @param[in] jvm the pointer to JavaVM object

@@ -211,6 +211,15 @@ if(PCAPPP_USE_DPDK)
   # Disable deprecated warnings when DPDK enabled since warnings are treated as errors
   add_definitions("-Wno-deprecated-declarations")
   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/setup_dpdk.py" "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
+
+  find_package(JNI REQUIRED)
+  if (NOT JNI_FOUND)
+    message(FATAL_ERROR "Specify JVM WITH -DJAVA_HOME=...")
+  else()
+    message (STATUS "JNI_INCLUDE_DIRS=${JNI_INCLUDE_DIRS}")
+    message (STATUS "JNI_LIBRARIES=${JNI_LIBRARIES}")
+  endif()
+
 endif()
 
 find_package(JNI REQUIRED)
