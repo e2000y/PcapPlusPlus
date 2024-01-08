@@ -21,8 +21,6 @@ namespace pcpp
 class AppWorkerThread : public DpdkWorkerThread
 {
 private:
-    JavaVM* m_jvm;
-    JNIEnv* m_env;
     DpdkDevice* m_dpdkDev;
     uint16_t m_queue;
     IPReassembly* m_reassembly;
@@ -36,9 +34,8 @@ private:
     uint32_t m_coreId;
     
 public:
-    AppWorkerThread(void* ptr, uint32_t mBufPoolSize, DpdkDevice* dpdkDev, uint16_t queue, IPReassembly* reassembly, Dpdk_Dev_Rx_Stats* stat, std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
+    AppWorkerThread(uint32_t mBufPoolSize, DpdkDevice* dpdkDev, uint16_t queue, IPReassembly* reassembly, Dpdk_Dev_Rx_Stats* stat, std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
     {
-        m_jvm = (JavaVM*) ptr;
         m_dpdkDev = dpdkDev;
         m_queue = queue;
         m_reassembly = reassembly;
@@ -49,9 +46,7 @@ public:
     }
 
     ~AppWorkerThread()
-    {
-        m_jvm->DetachCurrentThread();
-    }
+    { }
 
     void stop()
     {
@@ -73,12 +68,6 @@ public:
         if (m_dpdkDev == nullptr)
         {
             PCPP_LOG_ERROR("NO DPDK device assigned to core - " << coreId);
-
-            ret = false;
-        }
-        else if (m_jvm->AttachCurrentThread((void **)&m_env, NULL) < 0)
-        {
-            PCPP_LOG_ERROR("Cannot attach JVM for core - " << coreId);
 
             ret = false;
         }
@@ -241,7 +230,7 @@ Dpdk_Ipv4::~Dpdk_Ipv4()
     DpdkDeviceList::getInstance().stopDpdkWorkerThreads();
 }
 
-bool Dpdk_Ipv4::startProcess(void* ptr, const std::vector<std::string> devs, const uint16_t queues, std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
+bool Dpdk_Ipv4::startProcess(const std::vector<std::string> devs, const uint16_t queues, std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
 {
     if (m_coresToUse.size() < devs.size())
     {
@@ -284,7 +273,7 @@ bool Dpdk_Ipv4::startProcess(void* ptr, const std::vector<std::string> devs, con
 
                     for (uint16_t q = 0; q < dpdkDev->getNumOfOpenedRxQueues(); q++)
                     {
-                        workerThreadsVec.push_back(new AppWorkerThread(ptr, m_mBufPoolSizePerDevice, dpdkDev, q, &m_reassembly, devStat, callback));
+                        workerThreadsVec.push_back(new AppWorkerThread(m_mBufPoolSizePerDevice, dpdkDev, q, &m_reassembly, devStat, callback));
                     }
                 }
                 else
