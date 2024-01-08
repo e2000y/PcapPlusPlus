@@ -21,8 +21,6 @@ namespace pcpp
 class AppWorkerThread : public DpdkWorkerThread
 {
 private:
-    JavaVM* m_jvm;
-    JNIEnv* m_env;
     DpdkDevice* m_dpdkDev;
     uint16_t m_queue;
     IPReassembly* m_reassembly;
@@ -38,7 +36,6 @@ private:
 public:
     AppWorkerThread(uint32_t mBufPoolSize, DpdkDevice* dpdkDev, uint16_t queue, IPReassembly* reassembly, Dpdk_Dev_Rx_Stats* stat, const void* jvm, const std::string& clz, const std::string& mtd, const std::string& sig)
     {
-        m_jvm = (JavaVM*) ptr;
         m_dpdkDev = dpdkDev;
         m_queue = queue;
         m_stat = stat;
@@ -77,12 +74,6 @@ public:
         if (m_dpdkDev == nullptr)
         {
             PCPP_LOG_ERROR("NO DPDK device assigned to core - " << coreId);
-
-            ret = false;
-        }
-        else if (m_jvm->AttachCurrentThread((void **)&m_env, NULL) < 0)
-        {
-            PCPP_LOG_ERROR("Cannot attach JVM for core - " << coreId);
 
             ret = false;
         }
