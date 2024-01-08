@@ -59,13 +59,12 @@ namespace pcpp
 
         /**
          * start the DPDK with callback with new thread
-         * @param[in] ptr a pointer to JNI object JavaVM
          * @param[in] devs the PCI address of the devices
          * @param[in] queues the number of RX queues used
          * @param[in] callback the callback function
          * @return true if can start the processing
          */
-        bool startProcess(void* ptr, const std::vector<std::string> devs, const uint16_t queues, std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback);
+        bool startProcess(const std::vector<std::string> devs, const uint16_t queues, std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback);
 
         /**
          * stop the DPDK
