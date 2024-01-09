@@ -25,7 +25,7 @@ void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, std::fu
         {
             IPv4Layer* ipLayer = pkt->getLayerOfType<IPv4Layer>(true);
 
-            if (ipLayer != nullptr)
+            if ((ipLayer != nullptr) && (ipLayer->getLayerPayloadSize() > 0) && (ipLayer->getLayerPayload() != nullptr))
             {
                 timespec t = rawPacket.getPacketTimeStamp();
 

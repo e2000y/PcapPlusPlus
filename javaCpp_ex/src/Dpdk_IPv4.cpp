@@ -121,7 +121,7 @@ public:
                     {
                         IPv4Layer* ipLayer = pkt->getLayerOfType<pcpp::IPv4Layer>(true);
 
-                        if (ipLayer != nullptr)
+                        if ((ipLayer != nullptr) && (ipLayer->getLayerPayloadSize() > 0) && (ipLayer->getLayerPayload() != nullptr))
                         {
                             timespec t = packetArr[i]->getPacketTimeStamp();
 
@@ -133,16 +133,7 @@ public:
                             }
                             catch (...)
                             {
-                                std::exception_ptr ex = std::current_exception();
-
-                                try
-                                {
-                                    std::rethrow_exception(ex);
-                                }
-                                catch (const std::exception& e)
-                                {
-                                    PCPP_LOG_ERROR("Got exception from JVM - " << e.what());
-                                }
+                                //  ignore exception
                             }
                         }
 
