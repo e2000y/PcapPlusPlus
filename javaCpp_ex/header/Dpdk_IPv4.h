@@ -41,7 +41,8 @@ namespace pcpp
         std::vector<SystemCore> m_coresToUse;
 		IPReassembly m_reassembly;
         std::map<std::string, Dpdk_Dev_Rx_Stats*> stats;
-        std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> m_callback;
+
+        //std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> m_callback;
 
 	public:
         /**
@@ -61,10 +62,13 @@ namespace pcpp
          * start the DPDK with callback with new thread
          * @param[in] devs the PCI address of the devices
          * @param[in] queues the number of RX queues used
-         * @param[in] callback the callback function
+         * @param[in] jvm the pointer to JavaVM object
+         * @param[in] clz the Java class name for callback
+         * @param[in] mtd the Java class static method for callback
+         * @param[in] sig the Java class static method signature for callback
          * @return true if can start the processing
          */
-        bool startProcess(const std::vector<std::string> devs, const uint16_t queues, std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback);
+        bool startProcess(const std::vector<std::string> devs, const uint16_t queues, const void* jvm, const std::string& clz, const std::string& mtd, const std::string& sig);
 
         /**
          * stop the DPDK
