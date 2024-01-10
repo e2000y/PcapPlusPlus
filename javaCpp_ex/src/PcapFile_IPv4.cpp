@@ -23,60 +23,67 @@ void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, const v
     {
         jclass jclz = jenv->FindClass(clz.c_str());
 
-        if (jclz != nullptr)
+        if (jenv != nullptr)
         {
-            jmethodID jmtd = jenv->GetStaticMethodID(jclz, mtd.c_str(), sig.c_str());
-
-            if (jmtd != nullptr)
+            if (jclz != nullptr)
             {
-                RawPacket rawPacket = RawPacket();
+                jmethodID jmtd = jenv->GetStaticMethodID(jclz, mtd.c_str(), sig.c_str());
 
-                while (fileDevice->getNextPacket(rawPacket))
+                if (jmtd != nullptr)
                 {
-                    Packet* pkt = getIPv4Layer(&rawPacket, &reassembly);
+                    RawPacket rawPacket = RawPacket();
 
-                    if (pkt != nullptr)
+                    while (fileDevice->getNextPacket(rawPacket))
                     {
-                        IPv4Layer* ipLayer = pkt->getLayerOfType<IPv4Layer>(true);
+                        Packet* pkt = getIPv4Layer(&rawPacket, &reassembly);
 
-                        if ((ipLayer != nullptr) && (ipLayer->getLayerPayloadSize() > 0) && (ipLayer->getLayerPayload() != nullptr))
+                        if (pkt != nullptr)
                         {
-                            timespec t = rawPacket.getPacketTimeStamp();
+                            IPv4Layer* ipLayer = pkt->getLayerOfType<IPv4Layer>(true);
 
-                            long long time = (t.tv_sec * 1000L) + (t.tv_nsec / 1000000L);
-                            jint src =  ipLayer->getIPv4Header()->ipSrc;
-                            jint dst = ipLayer->getIPv4Header()->ipDst;
-                            jint protocol = ipLayer->getIPv4Header()->protocol;
-                            jobject buffer = jenv->NewDirectByteBuffer(ipLayer->getLayerPayload(), ipLayer->getLayerPayloadSize());
-
-                            if (buffer != nullptr)
+                            if ((ipLayer != nullptr) && (ipLayer->getLayerPayloadSize() > 0) && (ipLayer->getLayerPayload() != nullptr))
                             {
-                                jenv->CallStaticVoidMethod(jclz, jmtd, time, src, dst, protocol, buffer); 
+                                timespec t = rawPacket.getPacketTimeStamp();
 
-                                jenv->DeleteLocalRef(buffer);
+                                long long time = (t.tv_sec * 1000L) + (t.tv_nsec / 1000000L);
+                                jint src =  ipLayer->getIPv4Header()->ipSrc;
+                                jint dst = ipLayer->getIPv4Header()->ipDst;
+                                jint protocol = ipLayer->getIPv4Header()->protocol;
+                                jbyteArray ba = jenv->NewByteArray(ipLayer->getLayerPayloadSize());
+                                
+                                if (ba != nullptr)
+                                {
+                                    jenv->SetByteArrayRegion(ba, 0, ipLayer->getLayerPayloadSize(), (jbyte*) ipLayer->getLayerPayload());
+
+                                    jenv->CallStaticVoidMethod(jclz, jmtd, time, src, dst, protocol, ba); 
+                                }
+                                else
+                                {
+                                    PCPP_LOG_ERROR("cannot allocate Buffer @" << time << " for size " << ipLayer->getLayerPayloadSize());
+                                }
                             }
-                            else
-                            {
-                                PCPP_LOG_ERROR("cannot allocate Buffer @" << time << " for size " << ipLayer->getLayerPayloadSize());
-                            }
+
+                            delete pkt;
                         }
 
-                        delete pkt;
+                        rawPacket.clear();
                     }
 
-                    rawPacket.clear();
+                    PCPP_LOG_INFO("PCAP / PCAP-NG end of file reached");
                 }
-
-                PCPP_LOG_INFO("PCAP / PCAP-NG end of file reached");
+                else
+                {
+                    PCPP_LOG_ERROR("cannot find method " << mtd << " - " << sig);
+                }
             }
             else
             {
-                PCPP_LOG_ERROR("cannot find method " << mtd << " - " << sig);
+                PCPP_LOG_ERROR("cannot find class " << clz);
             }
         }
         else
         {
-            PCPP_LOG_ERROR("cannot find class " << clz);
+            PCPP_LOG_ERROR("cannot get JNIEnv");
         }
 
         javavm->DetachCurrentThread();
