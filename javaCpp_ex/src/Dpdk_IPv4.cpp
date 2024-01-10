@@ -148,7 +148,7 @@ public:
                                             jint src =  ipLayer->getIPv4Header()->ipSrc;
                                             jint dst = ipLayer->getIPv4Header()->ipDst;
                                             jint protocol = ipLayer->getIPv4Header()->protocol;
-                                            byteArray ba = jenv->NewByteArray(ipLayer->getLayerPayloadSize());
+                                            jbyteArray ba = jenv->NewByteArray(ipLayer->getLayerPayloadSize());
 
                                             if (ba != nullptr)
                                             {
@@ -173,14 +173,14 @@ public:
                         }
                         else
                         {
-                            PCPP_LOG_ERROR("cannot find method " << mtd << " - " << sig);
+                            PCPP_LOG_ERROR("cannot find method " << m_mtd << " - " << m_sig);
 
                             ret = false;
                         }
                     }
                     else
                     {
-                        PCPP_LOG_ERROR("cannot find class " << clz);
+                        PCPP_LOG_ERROR("cannot find class " << m_clz);
 
                         ret = false;
                     }
