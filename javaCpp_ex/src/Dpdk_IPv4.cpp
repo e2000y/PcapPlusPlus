@@ -21,6 +21,7 @@ namespace pcpp
 class AppWorkerThread : public DpdkWorkerThread
 {
 private:
+    bool ready = false;
     DpdkDevice* m_dpdkDev;
     uint16_t m_queue;
     IPReassembly* m_reassembly;
@@ -46,7 +47,34 @@ public:
         m_mtd = mtd;
         m_sig = sig;
 
-        PCPP_LOG_INFO("AppWorkerThread assigned for DPDK device - " << dpdkDev->getDeviceName() << ", queue: " << queue);
+        if (m_javavm->AttachCurrentThread((void **) &m_jenv, nullptr) == JNI_OK)
+        {
+            m_jclz = m_jenv->FindClass(clz.c_str());
+
+            if (m_jclz != nullptr)
+            {
+                m_jmtd = m_jenv->GetStaticMethodID(jclz, mtd.c_str(), sig.c_str());
+
+                if (m_jmtd != nullptr)
+                {
+                    PCPP_LOG_INFO("AppWorkerThread assigned for DPDK device - " << dpdkDev->getDeviceName() << ", queue: " << queue);
+
+                    ready = true;
+                }
+                else
+                {
+                    PCPP_LOG_ERROR("cannot find method " << mtd << " - " << sig);
+                }
+            }
+            else
+            {
+                PCPP_LOG_ERROR("cannot find class " << clz);
+            }
+        }
+        else
+        {
+            PCPP_LOG_ERROR("Cannot attach to JVM");
+        }
     }
 
     ~AppWorkerThread()
