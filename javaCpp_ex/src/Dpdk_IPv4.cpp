@@ -51,7 +51,7 @@ public:
 
     ~AppWorkerThread()
     {
-        javavm->DetachCurrentThread();
+        m_javavm->DetachCurrentThread();
     }
 
     bool isReady()
@@ -325,7 +325,7 @@ bool Dpdk_Ipv4::startProcess(const std::vector<std::string> devs, const uint16_t
                     {
                         AppWorkerThread* thd = new AppWorkerThread(m_mBufPoolSizePerDevice, dpdkDev, q, &m_reassembly, devStat, jvm, clz, mtd, sig);
 
-                        if (thd.isReady())
+                        if (thd->isReady())
                         {
                             workerThreadsVec.push_back(thd);
                         }
