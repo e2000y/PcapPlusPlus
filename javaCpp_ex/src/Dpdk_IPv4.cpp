@@ -21,7 +21,6 @@ namespace pcpp
 class AppWorkerThread : public DpdkWorkerThread
 {
 private:
-    bool ready = false;
     DpdkDevice* m_dpdkDev;
     uint16_t m_queue;
     IPReassembly* m_reassembly;
