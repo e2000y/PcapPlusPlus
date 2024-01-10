@@ -200,7 +200,7 @@ public:
                     }
                     else
                     {
-                        PCPP_LOG_ERROR("cannot find class " << clz);
+                        PCPP_LOG_ERROR("cannot find class " << m_clz);
 
                         ret = false;
                     }
