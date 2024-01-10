@@ -23,7 +23,7 @@ namespace pcpp
     private:
 		IFileReaderDevice* m_fileDevice;
 		IPReassembly m_reassembly;
-        std::function<void(bool, long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> m_callback;
+        //std::function<void(bool, long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> m_callback;
 
 	public:
         /*
@@ -38,10 +38,13 @@ namespace pcpp
         /**
          * start the file reading with BPF filter and callback with new thread
          * @param[in] bpfFilter the BPF filter
-         * @param[in] callback the callback function that take in flag, time and IPv4Layer as parameter
+         * @param[in] jvm the pointer to JavaVM object
+         * @param[in] clz the Java class name for callback
+         * @param[in] mtd the Java class static method for callback
+         * @param[in] sig the Java class static method signature for callback
          * @return nothing
          */
-        void startProcess(const std::string& bpfFilter, std::function<void(bool, long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback);
+        void startProcess(const std::string& bpfFilter, const void* jvm, const std::string& clz, const std::string& mtd, const std::string& sig);
 	};
 }
 

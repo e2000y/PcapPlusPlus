@@ -21,32 +21,67 @@ namespace pcpp
 class AppWorkerThread : public DpdkWorkerThread
 {
 private:
+    bool ready = false;
     DpdkDevice* m_dpdkDev;
     uint16_t m_queue;
     IPReassembly* m_reassembly;
     Dpdk_Dev_Rx_Stats* m_stat;
     uint32_t m_mBufPoolSize;
-    std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> m_callback;
-    std::string m_cbClz;
-    std::string m_cbMtd;
-    std::string m_cbSig;
     bool m_stop = false;
     uint32_t m_coreId;
+    JavaVM* m_javavm;
+    JNIEnv* m_jenv = nullptr;
+    jclass m_jclz;
+    jmethodID m_jmtd;
     
 public:
-    AppWorkerThread(uint32_t mBufPoolSize, DpdkDevice* dpdkDev, uint16_t queue, IPReassembly* reassembly, Dpdk_Dev_Rx_Stats* stat, std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
+    AppWorkerThread(uint32_t mBufPoolSize, DpdkDevice* dpdkDev, uint16_t queue, IPReassembly* reassembly, Dpdk_Dev_Rx_Stats* stat, const void* jvm, const std::string& clz, const std::string& mtd, const std::string& sig)
     {
         m_dpdkDev = dpdkDev;
         m_queue = queue;
         m_reassembly = reassembly;
         m_mBufPoolSize = mBufPoolSize;
-        m_callback = callback;
+        m_javavm = (JavaVM*) jvm;
 
-        PCPP_LOG_INFO("AppWorkerThread assigned for DPDK device - " << dpdkDev->getDeviceName() << ", queue: " << queue);
+        if (m_javavm->AttachCurrentThread((void **) &m_jenv, nullptr) == JNI_OK)
+        {
+            m_jclz = m_jenv->FindClass(clz.c_str());
+
+            if (m_jclz != nullptr)
+            {
+                m_jmtd = m_jenv->GetStaticMethodID(jclz, mtd.c_str(), sig.c_str());
+
+                if (m_jmtd != nullptr)
+                {
+                    PCPP_LOG_INFO("AppWorkerThread assigned for DPDK device - " << dpdkDev->getDeviceName() << ", queue: " << queue);
+
+                    ready = true;
+                }
+                else
+                {
+                    PCPP_LOG_ERROR("cannot find method " << mtd << " - " << sig);
+                }
+            }
+            else
+            {
+                PCPP_LOG_ERROR("cannot find class " << clz);
+            }
+        }
+        else
+        {
+            PCPP_LOG_ERROR("Cannot attach to JVM");
+        }
     }
 
     ~AppWorkerThread()
-    { }
+    {
+        javavm->DetachCurrentThread();
+    }
+
+    bool isReady()
+    {
+        return ready;
+    }
 
     void stop()
     {
@@ -126,14 +161,20 @@ public:
                             timespec t = packetArr[i]->getPacketTimeStamp();
 
                             long long time = (t.tv_sec * 1000L) + (t.tv_nsec / 1000000L);
+                            jint src =  ipLayer->getIPv4Header()->ipSrc;
+                            jint dst = ipLayer->getIPv4Header()->ipDst;
+                            jint protocol = ipLayer->getIPv4Header()->protocol;
+                            jobject buffer = m_jenv->NewDirectByteBuffer(ipLayer->getLayerPayload(), ipLayer->getLayerPayloadSize());
 
-                            try
+                            if (buffer != nullptr)
                             {
-                                m_callback(time, ipLayer->getIPv4Header()->ipSrc, ipLayer->getIPv4Header()->ipDst, ipLayer->getIPv4Header()->protocol, ipLayer->getLayerPayloadSize(), ipLayer->getLayerPayload());
+                                m_jenv->CallStaticVoidMethod(m_jclz, m_jmtd, time, src, dst, protocol, buffer);
+
+                                m_jenv->DeleteLocalRef(buffer);
                             }
-                            catch (...)
+                            else
                             {
-                                //  ignore exception
+                                PCPP_LOG_ERROR("cannot allocate Buffer @" << time << " for size " << ipLayer->getLayerPayloadSize());
                             }
                         }
 
@@ -221,7 +262,7 @@ Dpdk_Ipv4::~Dpdk_Ipv4()
     DpdkDeviceList::getInstance().stopDpdkWorkerThreads();
 }
 
-bool Dpdk_Ipv4::startProcess(const std::vector<std::string> devs, const uint16_t queues, std::function<void(long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
+bool Dpdk_Ipv4::startProcess(const std::vector<std::string> devs, const uint16_t queues, const void* jvm, const std::string& clz, const std::string& mtd, const std::string& sig)
 {
     if (m_coresToUse.size() < devs.size())
     {
@@ -264,7 +305,12 @@ bool Dpdk_Ipv4::startProcess(const std::vector<std::string> devs, const uint16_t
 
                     for (uint16_t q = 0; q < dpdkDev->getNumOfOpenedRxQueues(); q++)
                     {
-                        workerThreadsVec.push_back(new AppWorkerThread(m_mBufPoolSizePerDevice, dpdkDev, q, &m_reassembly, devStat, callback));
+                        AppWorkerThread* thd = new AppWorkerThread(m_mBufPoolSizePerDevice, dpdkDev, q, &m_reassembly, devStat, jvm, clz, mtd, sig);
+
+                        if (thd.isReady())
+                        {
+                            workerThreadsVec.push_back(thd);
+                        }
                     }
                 }
                 else
@@ -278,7 +324,14 @@ bool Dpdk_Ipv4::startProcess(const std::vector<std::string> devs, const uint16_t
             }
         }
 
-        return DpdkDeviceList::getInstance().startDpdkWorkerThreads(m_coreMask, workerThreadsVec);
+        if (workerThreadsVec.empty())
+        {
+            return false;
+        }
+        else
+        {
+            return DpdkDeviceList::getInstance().startDpdkWorkerThreads(m_coreMask, workerThreadsVec);
+        }
     }
 }
 
