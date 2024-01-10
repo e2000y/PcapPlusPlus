@@ -2,6 +2,7 @@
 
 #include <time.h>
 #include <thread>
+#include <jni.h>
 #include "Logger.h"
 #include "RawPacket.h"
 #include "Packet.h"
@@ -13,36 +14,77 @@
 namespace pcpp
 {
 
-void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, std::function<void(bool, long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
+void processFile(IFileReaderDevice* fileDevice, IPReassembly reassembly, const void* jvm, const std::string& clz, const std::string& mtd, const std::string& sig)
 {
-    RawPacket rawPacket = RawPacket();
+    JavaVM* javavm = (JavaVM*) jvm;
+    JNIEnv* jenv = nullptr;
 
-    while (fileDevice->getNextPacket(rawPacket))
+    if (javavm->AttachCurrentThread((void **) &jenv, nullptr) == JNI_OK)
     {
-        Packet* pkt = getIPv4Layer(&rawPacket, &reassembly);
+        jclass jclz = jenv->FindClass(clz.c_str());
 
-        if (pkt != nullptr)
+        if (jclz != nullptr)
         {
-            IPv4Layer* ipLayer = pkt->getLayerOfType<IPv4Layer>(true);
+            jmethodID jmtd = jenv->GetStaticMethodID(jclz, mtd.c_str(), sig.c_str());
 
-            if ((ipLayer != nullptr) && (ipLayer->getLayerPayloadSize() > 0) && (ipLayer->getLayerPayload() != nullptr))
+            if (jmtd != nullptr)
             {
-                timespec t = rawPacket.getPacketTimeStamp();
+                RawPacket rawPacket = RawPacket();
 
-                long long time = (t.tv_sec * 1000L) + (t.tv_nsec / 1000000L);
+                while (fileDevice->getNextPacket(rawPacket))
+                {
+                    Packet* pkt = getIPv4Layer(&rawPacket, &reassembly);
 
-                callback(false, time, ipLayer->getIPv4Header()->ipSrc, ipLayer->getIPv4Header()->ipDst, ipLayer->getIPv4Header()->protocol, ipLayer->getLayerPayloadSize(), ipLayer->getLayerPayload());
+                    if (pkt != nullptr)
+                    {
+                        IPv4Layer* ipLayer = pkt->getLayerOfType<IPv4Layer>(true);
+
+                        if ((ipLayer != nullptr) && (ipLayer->getLayerPayloadSize() > 0) && (ipLayer->getLayerPayload() != nullptr))
+                        {
+                            timespec t = rawPacket.getPacketTimeStamp();
+
+                            long long time = (t.tv_sec * 1000L) + (t.tv_nsec / 1000000L);
+                            jint src =  ipLayer->getIPv4Header()->ipSrc;
+                            jint dst = ipLayer->getIPv4Header()->ipDst;
+                            jint protocol = ipLayer->getIPv4Header()->protocol;
+                            jobject buffer = jenv->NewDirectByteBuffer(ipLayer->getLayerPayload(), ipLayer->getLayerPayloadSize());
+
+                            if (buffer != nullptr)
+                            {
+                                jenv->CallStaticVoidMethod(jclz, jmtd, time, src, dst, protocol, buffer); 
+
+                                jenv->DeleteLocalRef(buffer);
+                            }
+                            else
+                            {
+                                PCPP_LOG_ERROR("cannot allocate Buffer @" << time << " for size " << ipLayer->getLayerPayloadSize());
+                            }
+                        }
+
+                        delete pkt;
+                    }
+
+                    rawPacket.clear();
+                }
+
+                PCPP_LOG_INFO("PCAP / PCAP-NG end of file reached");
             }
-
-            delete pkt;
+            else
+            {
+                PCPP_LOG_ERROR("cannot find method " << mtd << " - " << sig);
+            }
+        }
+        else
+        {
+            PCPP_LOG_ERROR("cannot find class " << clz);
         }
 
-        rawPacket.clear();
+        javavm->DetachCurrentThread();
     }
-
-    PCPP_LOG_INFO("PCAP / PCAP-NG end of file reached");
-
-    callback(true, 0L, 0, 0, 0, 0, nullptr);
+    else
+    {
+        PCPP_LOG_ERROR("Cannot attach to JVM");
+    }
 }
 
 PcapFileInIpV4Out::PcapFileInIpV4Out(const std::string& fileName, const bool isNg, size_t maxIPReassembly) :
@@ -66,14 +108,14 @@ PcapFileInIpV4Out::~PcapFileInIpV4Out()
     }
 }
 
-void PcapFileInIpV4Out::startProcess(const std::string& bpfFilter, std::function<void(bool, long long, uint32_t, uint32_t, uint8_t, size_t, uint8_t*)> callback)
+void PcapFileInIpV4Out::startProcess(const std::string& bpfFilter, const void* jvm, const std::string& clz, const std::string& mtd, const std::string& sig)
 {
 	if (m_fileDevice->open())
     {
 	    if (!bpfFilter.empty())
 	    	m_fileDevice->setFilter(bpfFilter);
 
-        std::thread(&processFile, m_fileDevice, m_reassembly, callback).detach();
+        std::thread(&processFile, m_fileDevice, m_reassembly, jvm, clz, mtd, sig).detach();
     }
     else
     {
