@@ -30,9 +30,9 @@ private:
     bool m_stop = false;
     uint32_t m_coreId;
     JavaVM* m_javavm;
-    JNIEnv* m_jenv = nullptr;
-    jclass m_jclz;
-    jmethodID m_jmtd;
+    std::string m_clz;
+    std::string m_mtd;
+    std::string m_sig;
     
 public:
     AppWorkerThread(uint32_t mBufPoolSize, DpdkDevice* dpdkDev, uint16_t queue, IPReassembly* reassembly, Dpdk_Dev_Rx_Stats* stat, const void* jvm, const std::string& clz, const std::string& mtd, const std::string& sig)
@@ -42,35 +42,11 @@ public:
         m_reassembly = reassembly;
         m_mBufPoolSize = mBufPoolSize;
         m_javavm = (JavaVM*) jvm;
+        m_clz = clz;
+        m_mtd = mtd;
+        m_sig = sig;
 
-        if (m_javavm->AttachCurrentThread((void **) &m_jenv, nullptr) == JNI_OK)
-        {
-            m_jclz = m_jenv->FindClass(clz.c_str());
-
-            if (m_jclz != nullptr)
-            {
-                m_jmtd = m_jenv->GetStaticMethodID(jclz, mtd.c_str(), sig.c_str());
-
-                if (m_jmtd != nullptr)
-                {
-                    PCPP_LOG_INFO("AppWorkerThread assigned for DPDK device - " << dpdkDev->getDeviceName() << ", queue: " << queue);
-
-                    ready = true;
-                }
-                else
-                {
-                    PCPP_LOG_ERROR("cannot find method " << mtd << " - " << sig);
-                }
-            }
-            else
-            {
-                PCPP_LOG_ERROR("cannot find class " << clz);
-            }
-        }
-        else
-        {
-            PCPP_LOG_ERROR("Cannot attach to JVM");
-        }
+        PCPP_LOG_INFO("AppWorkerThread assigned for DPDK device - " << dpdkDev->getDeviceName() << ", queue: " << queue);
     }
 
     ~AppWorkerThread()
@@ -110,81 +86,123 @@ public:
         {
             PCPP_LOG_INFO("DPDK device " << m_dpdkDev->getDeviceId() << ":" << m_dpdkDev->getDeviceName() << " use core ID " << coreId);
 
-            MBufRawPacket* packetArr[MAX_RECEIVE_BURST] = {};
-            //  for stats reporting
-            int iter = 0;
-            std::time_t last = std::time(nullptr);
-            DpdkDevice::DpdkDeviceStats theStat;
+            JNIEnv* jenv = nullptr;
 
-            while (!m_stop)
+            if (m_javavm->AttachCurrentThread((void **) &jenv, nullptr) == JNI_OK)
             {
-                //  we do every 100 iterations - saving CPU
-                if ((iter % 100) == 0)
+                if (jenv != nullptr)
                 {
-                    std::time_t now = std::time(nullptr);
+                    jclass jclz = jenv->FindClass(m_clz.c_str());
 
-                    int diff = (int) now - last;
-
-                    //  only report at most 1 minute interval
-                    if (diff >= 60)
+                    if (jclz != nullptr)
                     {
-                        last = now;
+                        jmethodID jmtd = jenv->GetStaticMethodID(jclz, m_mtd.c_str(), m_sig.c_str());
 
-                        m_dpdkDev->getStatistics(theStat);
-
-                        m_stat->tv_sec = (long long) theStat.timestamp.tv_sec;
-                        m_stat->rxDrop = theStat.rxPacketsDroppedByHW;
-                        m_stat->rxErrs = theStat.rxErroneousPackets;
-                        m_stat->rxMbufAllocFail = theStat.rxMbufAlocFailed;
-                        m_stat->packets = theStat.aggregatedRxStats.packets;
-                        m_stat->bytes = theStat.aggregatedRxStats.bytes;
-                        m_stat->packetsPerSec = theStat.aggregatedRxStats.packetsPerSec;
-                        m_stat->bytesPerSec = theStat.aggregatedRxStats.bytesPerSec;
-                    }
-
-                    iter = 0;
-                }
-
-                uint16_t packetsReceived = m_dpdkDev->receivePackets(packetArr, MAX_RECEIVE_BURST, m_queue);
-
-                for (int i = 0; i < packetsReceived; i++)
-                {
-                    //  parse packet
-                    Packet* pkt = getIPv4Layer(packetArr[i], m_reassembly);
-
-                    if (pkt != nullptr)
-                    {
-                        IPv4Layer* ipLayer = pkt->getLayerOfType<pcpp::IPv4Layer>(true);
-
-                        if ((ipLayer != nullptr) && (ipLayer->getLayerPayloadSize() > 0) && (ipLayer->getLayerPayload() != nullptr))
+                        if (jmtd != nullptr)
                         {
-                            timespec t = packetArr[i]->getPacketTimeStamp();
+                            MBufRawPacket* packetArr[MAX_RECEIVE_BURST] = {};
+                            //  for stats reporting
+                            int iter = 0;
+                            std::time_t last = std::time(nullptr);
+                            DpdkDevice::DpdkDeviceStats theStat;
 
-                            long long time = (t.tv_sec * 1000L) + (t.tv_nsec / 1000000L);
-                            jint src =  ipLayer->getIPv4Header()->ipSrc;
-                            jint dst = ipLayer->getIPv4Header()->ipDst;
-                            jint protocol = ipLayer->getIPv4Header()->protocol;
-                            jobject buffer = m_jenv->NewDirectByteBuffer(ipLayer->getLayerPayload(), ipLayer->getLayerPayloadSize());
-
-                            if (buffer != nullptr)
+                            while (!m_stop)
                             {
-                                m_jenv->CallStaticVoidMethod(m_jclz, m_jmtd, time, src, dst, protocol, buffer);
+                                //  we do every 100 iterations - saving CPU
+                                if ((iter % 100) == 0)
+                                {
+                                    std::time_t now = std::time(nullptr);
 
-                                m_jenv->DeleteLocalRef(buffer);
-                            }
-                            else
-                            {
-                                PCPP_LOG_ERROR("cannot allocate Buffer @" << time << " for size " << ipLayer->getLayerPayloadSize());
+                                    int diff = (int) now - last;
+
+                                    //  only report at most 1 minute interval
+                                    if (diff >= 60)
+                                    {
+                                        last = now;
+
+                                        m_dpdkDev->getStatistics(theStat);
+
+                                        m_stat->tv_sec = (long long) theStat.timestamp.tv_sec;
+                                        m_stat->rxDrop = theStat.rxPacketsDroppedByHW;
+                                        m_stat->rxErrs = theStat.rxErroneousPackets;
+                                        m_stat->rxMbufAllocFail = theStat.rxMbufAlocFailed;
+                                        m_stat->packets = theStat.aggregatedRxStats.packets;
+                                        m_stat->bytes = theStat.aggregatedRxStats.bytes;
+                                        m_stat->packetsPerSec = theStat.aggregatedRxStats.packetsPerSec;
+                                        m_stat->bytesPerSec = theStat.aggregatedRxStats.bytesPerSec;
+                                    }
+
+                                    iter = 0;
+                                }
+
+                                uint16_t packetsReceived = m_dpdkDev->receivePackets(packetArr, MAX_RECEIVE_BURST, m_queue);
+
+                                for (int i = 0; i < packetsReceived; i++)
+                                {
+                                    //  parse packet
+                                    Packet* pkt = getIPv4Layer(packetArr[i], m_reassembly);
+
+                                    if (pkt != nullptr)
+                                    {
+                                        IPv4Layer* ipLayer = pkt->getLayerOfType<pcpp::IPv4Layer>(true);
+
+                                        if ((ipLayer != nullptr) && (ipLayer->getLayerPayloadSize() > 0) && (ipLayer->getLayerPayload() != nullptr))
+                                        {
+                                            timespec t = packetArr[i]->getPacketTimeStamp();
+
+                                            long long time = (t.tv_sec * 1000L) + (t.tv_nsec / 1000000L);
+                                            jint src =  ipLayer->getIPv4Header()->ipSrc;
+                                            jint dst = ipLayer->getIPv4Header()->ipDst;
+                                            jint protocol = ipLayer->getIPv4Header()->protocol;
+                                            byteArray ba = jenv->NewByteArray(ipLayer->getLayerPayloadSize());
+
+                                            if (ba != nullptr)
+                                            {
+                                                jenv->SetByteArrayRegion(ba, 0, ipLayer->getLayerPayloadSize(), (jbyte*) ipLayer->getLayerPayload());
+
+                                                jenv->CallStaticVoidMethod(jclz, jmtd, time, src, dst, protocol, ba);
+                                            }
+                                            else
+                                            {
+                                                PCPP_LOG_ERROR("cannot allocate Buffer @" << time << " for size " << ipLayer->getLayerPayloadSize());
+                                            }
+                                        }
+
+                                        delete pkt;
+                                    }
+
+                                    packetArr[i]->clear();
+                                }
+
+                                iter++;
                             }
                         }
+                        else
+                        {
+                            PCPP_LOG_ERROR("cannot find method " << mtd << " - " << sig);
 
-                        delete pkt;
+                            ret = false;
+                        }
                     }
+                    else
+                    {
+                        PCPP_LOG_ERROR("cannot find class " << clz);
 
-                    packetArr[i]->clear();
+                        ret = false;
+                    }
                 }
+                else
+                {
+                    PCPP_LOG_ERROR("Cannot get JNIEnv");
 
-                iter++;
+                    ret = false;
+                }
+            }
+            else
+            {
+                PCPP_LOG_ERROR("Cannot attach to JVM");
+
+                ret = false;
             }
         }
 
