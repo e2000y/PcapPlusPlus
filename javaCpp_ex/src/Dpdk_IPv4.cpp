@@ -47,34 +47,7 @@ public:
         m_mtd = mtd;
         m_sig = sig;
 
-        if (m_javavm->AttachCurrentThread((void **) &m_jenv, nullptr) == JNI_OK)
-        {
-            m_jclz = m_jenv->FindClass(clz.c_str());
-
-            if (m_jclz != nullptr)
-            {
-                m_jmtd = m_jenv->GetStaticMethodID(jclz, mtd.c_str(), sig.c_str());
-
-                if (m_jmtd != nullptr)
-                {
-                    PCPP_LOG_INFO("AppWorkerThread assigned for DPDK device - " << dpdkDev->getDeviceName() << ", queue: " << queue);
-
-                    ready = true;
-                }
-                else
-                {
-                    PCPP_LOG_ERROR("cannot find method " << mtd << " - " << sig);
-                }
-            }
-            else
-            {
-                PCPP_LOG_ERROR("cannot find class " << clz);
-            }
-        }
-        else
-        {
-            PCPP_LOG_ERROR("Cannot attach to JVM");
-        }
+        PCPP_LOG_INFO("AppWorkerThread assigned for DPDK device - " << dpdkDev->getDeviceName() << ", queue: " << queue);
     }
 
     ~AppWorkerThread()
@@ -226,8 +199,12 @@ public:
 
                         ret = false;
                     }
+                    else
+                    {
+                        PCPP_LOG_ERROR("cannot find class " << clz);
 
-                    packetArr[i]->clear();
+                        ret = false;
+                    }
                 }
                 else
                 {
