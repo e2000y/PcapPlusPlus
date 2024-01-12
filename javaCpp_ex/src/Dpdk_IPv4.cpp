@@ -38,6 +38,7 @@ public:
     {
         m_dpdkDev = dpdkDev;
         m_queue = queue;
+        m_stat = stat;
         m_reassembly = reassembly;
         m_mBufPoolSize = mBufPoolSize;
         m_javavm = (JavaVM*) jvm;
