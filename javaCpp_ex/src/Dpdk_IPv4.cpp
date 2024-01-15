@@ -156,6 +156,8 @@ public:
                                                 jenv->SetByteArrayRegion(ba, 0, ipLayer->getLayerPayloadSize(), (jbyte*) ipLayer->getLayerPayload());
 
                                                 jenv->CallStaticVoidMethod(jclz, jmtd, time, src, dst, protocol, ba);
+
+                                                jenv->DeleteLocalRef(ba);
                                             }
                                             else
                                             {
