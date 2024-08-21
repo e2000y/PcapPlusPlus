@@ -348,6 +348,11 @@ namespace pcpp
 	const ProtocolType SCTP = 199;
 
 	/**
+	 * SCTP
+	 */
+	const ProtocolType SCTP = 0x8000000000000000;
+
+	/**
 	 * An enum representing OSI model layers
 	 */
 	enum OsiModelLayer

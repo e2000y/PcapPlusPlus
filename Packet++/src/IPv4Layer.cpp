@@ -16,6 +16,7 @@
 #include <sstream>
 #include "Logger.h"
 #include "EndianPortable.h"
+#include "SctpLayer.h"
 
 namespace pcpp
 {
@@ -344,6 +345,7 @@ void IPv4Layer::parseNextLayer()
   		m_NextLayer = SctpLayer::isDataValid(payload, payloadLen)
   			? static_cast<Layer*>(new SctpLayer(payload, payloadLen, this, m_Packet))
  			: static_cast<Layer*>(new PayloadLayer(payload, payloadLen, this, m_Packet));
+		break;
 	default:
 		m_NextLayer = new PayloadLayer(payload, payloadLen, this, m_Packet);
 	}
