@@ -16,6 +16,7 @@
 #include <sstream>
 #include "Logger.h"
 #include "EndianPortable.h"
+#include "SctpLayer.h"
 
 namespace pcpp
 {

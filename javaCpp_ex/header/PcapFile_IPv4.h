@@ -46,4 +46,3 @@ namespace pcpp
         void startProcess(const std::string& bpfFilter, const void* jvm, const std::string& clz, const std::string& mtd, const std::string& sig);
 	};
 }
-
